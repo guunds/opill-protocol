@@ -654,7 +654,7 @@
         <div id="wallet-dropdown" style="display:none;position:absolute;top:calc(100% + 8px);right:0;min-width:180px;background:#0c1322;border:1px solid rgba(247,147,26,0.3);border-radius:12px;padding:8px;z-index:10001;box-shadow:0 8px 32px rgba(0,0,0,0.7)">
           <div style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:6px">
             <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px">Connected Wallet</div>
-            <div id="wallet-dropdown-addr" style="font-size:11px;color:var(--text);font-family:'DM Mono',monospace">--</div>
+            <div id="wallet-dropdown-addr" style="font-size:11px;color:var(--text);font-family:DM Mono,monospace">--</div>
           </div>
           <button onclick="event.stopPropagation();openLogoutConfirm()" style="width:100%;background:rgba(255,68,102,0.12);border:1px solid rgba(255,68,102,0.3);border-radius:8px;color:#ff4466;padding:8px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background 0.2s" onmouseover="this.style.background='rgba(255,68,102,0.22)'" onmouseout="this.style.background='rgba(255,68,102,0.12)'">
             <span>🚪</span> Logout / Disconnect
@@ -1000,7 +1000,7 @@
         <div class="card" style="padding:0;overflow:hidden">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:rgba(0,0,0,0.2);border-bottom:1px solid var(--border);font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em">
             <span>Transaction Details</span>
-            <span style="color:rgba(0,229,255,0.6);font-size:9px;font-family:'DM Mono',monospace">↗ Click TX Hash to open in OP_NET Explorer</span>
+            <span style="color:rgba(0,229,255,0.6);font-size:9px;font-family:DM Mono,monospace">↗ Click TX Hash to open in OP_NET Explorer</span>
           </div>
           <div id="hist-rows">
             <div id="hist-connect-prompt" style="text-align:center;padding:48px 20px;color:var(--text-muted);font-size:13px">
@@ -1625,7 +1625,7 @@
                 <span>Your Bitcoin Address</span>
                 <span id="faucet-addr-tag" style="display:none;color:var(--green);font-size:10px">● Wallet connected</span>
               </div>
-              <input class="input-field" id="faucet-address-input" type="text" placeholder="tb1q... (Testnet4)" style="font-family:'DM Mono',monospace;font-size:12px">
+              <input class="input-field" id="faucet-address-input" type="text" placeholder="tb1q... (Testnet4)" style="font-family:DM Mono,monospace;font-size:12px">
               <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Auto-filled when wallet is connected</div>
             </div>
             <div class="input-group">
@@ -4063,6 +4063,17 @@ function histFilter(type, btn) {
 var OPNET_TX_URL   = 'https://mempool.opnet.org/testnet4/tx/';
 var OPNET_ADDR_URL = 'https://mempool.opnet.org/testnet4/address/';
 
+function _fmtTime(ts) {
+  var d = Date.now() - ts;
+  if (d < 60000) return Math.floor(d/1000) + 's ago';
+  if (d < 3600000) return Math.floor(d/60000) + 'm ago';
+  if (d < 86400000) return Math.floor(d/3600000) + 'h ago';
+  return Math.floor(d/86400000) + 'd ago';
+}
+function _fmtDate(ts) {
+  return new Date(ts).toLocaleString('en-US', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+}
+
 function histRefresh() {
   var rows    = document.getElementById('hist-rows');
   var totalEl = document.getElementById('hist-total-tx');
@@ -4074,74 +4085,138 @@ function histRefresh() {
   var filtered = _histFilter === 'all' ? _txLog : _txLog.filter(function(t){ return t.type === _histFilter; });
 
   if (filtered.length === 0) {
-    rows.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--text-muted);font-size:13px"><div style="font-size:40px;margin-bottom:12px">📋</div>' + (_txLog.length === 0 ? 'Connect wallet and interact with the protocol' : 'No transactions of this type yet') + '</div>';
+    rows.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--text-muted);font-size:13px"><div style="font-size:40px;margin-bottom:12px">\u{1F4CB}</div>' + (_txLog.length === 0 ? 'Connect wallet to see your transaction history' : 'No transactions of this type yet') + '</div>';
     if (totalEl) totalEl.textContent = _txLog.length;
     return;
   }
 
   if (totalEl) totalEl.textContent = _txLog.length;
-  if (lastEl && _txLog[0]) {
-    var diff = Date.now() - _txLog[0].ts;
-    lastEl.textContent = diff < 60000 ? Math.floor(diff/1000)+'s ago' : diff < 3600000 ? Math.floor(diff/60000)+'m ago' : Math.floor(diff/3600000)+'h ago';
-  }
-
+  if (lastEl && _txLog[0]) lastEl.textContent = _fmtTime(_txLog[0].ts);
   var totalVol = _txLog.reduce(function(s,t){return s+(parseFloat(t.amount)||0);},0);
   if (volEl) volEl.textContent = totalVol.toFixed(4);
   var protos = new Set(_txLog.map(function(t){return t.type;})).size;
   if (protoEl) protoEl.textContent = protos;
 
-  var icons = {stake:'⚡',unstake:'🔓',claim:'💰',compound:'↺',vault:'🏦',lend:'💸',borrow:'📤',nft:'🖼️',mint:'🎨',raffle:'🎰',pred:'🔮',dao:'🗳️',yield:'🌾',faucet:'🚰'};
+  var icons = {stake:'\u26A1',unstake:'\u{1F513}',claim:'\u{1F4B0}',compound:'\u21BA',vault:'\u{1F3E6}',lend:'\u{1F4B8}',borrow:'\u{1F4E4}',nft:'\u{1F5BC}',mint:'\u{1F3A8}',raffle:'\u{1F3B0}',pred:'\u{1F52E}',dao:'\u{1F5F3}',yield:'\u{1F33E}',faucet:'\u{1F6B0}'};
 
   rows.innerHTML = '';
   filtered.forEach(function(tx) {
     var el = document.createElement('div');
-    el.style.cssText = 'border-bottom:1px solid rgba(255,255,255,0.05);transition:background 0.15s';
-    el.onmouseover = function(){ this.style.background='rgba(247,147,26,0.03)'; };
-    el.onmouseout  = function(){ this.style.background=''; };
+    el.style.cssText = 'border-bottom:1px solid rgba(255,255,255,0.05)';
 
-    var diff2   = Date.now() - tx.ts;
-    var timeStr = diff2 < 60000 ? Math.floor(diff2/1000)+'s ago' : diff2 < 3600000 ? Math.floor(diff2/60000)+'m ago' : Math.floor(diff2/3600000)+'h ago';
-    var dateStr = new Date(tx.ts).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    var txid       = tx.txid || '';
+    var walletAddr = tx.wallet || _dbWallet || '';
+    var txUrl      = OPNET_TX_URL + txid;
+    var addrUrl    = walletAddr ? OPNET_ADDR_URL + walletAddr : '#';
+    var shortTx    = txid       ? txid.slice(0,10)+'...'+txid.slice(-8)         : '--';
+    var shortAddr  = walletAddr ? walletAddr.slice(0,8)+'...'+walletAddr.slice(-6) : '--';
+    var stColor    = tx.status === 'confirmed' ? '#00ff88' : tx.status === 'pending' ? '#f7931a' : '#888';
+    var stBg       = tx.status === 'confirmed' ? 'rgba(0,255,136,0.1)' : tx.status === 'pending' ? 'rgba(247,147,26,0.1)' : 'rgba(255,255,255,0.05)';
+    var icon       = icons[tx.type] || '\u{1F4C4}';
 
-    var txid      = tx.txid || '';
-    var walletAddr= tx.wallet || _dbWallet || '';
-    var txUrl     = OPNET_TX_URL + txid;
-    var addrUrl   = walletAddr ? OPNET_ADDR_URL + walletAddr : '#';
-    var shortTx   = txid   ? (txid.slice(0,10)+'...'+txid.slice(-8))   : '--';
-    var shortAddr = walletAddr ? (walletAddr.slice(0,8)+'...'+walletAddr.slice(-6)) : '--';
+    // Top row: icon + label + amount + status + time
+    var topRow = document.createElement('div');
+    topRow.style.cssText = 'display:flex;gap:12px;padding:14px 18px 6px;align-items:flex-start';
 
-    var statusColor = tx.status==='confirmed'?'#00ff88':tx.status==='pending'?'#f7931a':'#888';
-    var statusBg    = tx.status==='confirmed'?'rgba(0,255,136,0.1)':tx.status==='pending'?'rgba(247,147,26,0.1)':'rgba(255,255,255,0.05)';
+    var iconEl = document.createElement('div');
+    iconEl.style.cssText = 'font-size:20px;flex-shrink:0;margin-top:2px';
+    iconEl.textContent = icon;
 
-    var txidEsc = txid.replace(/'/g, "\'");
-    el.innerHTML =
-      '<div style="display:flex;gap:12px;padding:14px 18px 8px;align-items:flex-start">' +
-        '<div style="font-size:22px;flex-shrink:0;margin-top:2px">' + (icons[tx.type]||'📄') + '</div>' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="font-weight:600;font-size:13px;color:#e8eaf0;margin-bottom:6px">' + tx.label + '</div>' +
-          '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">' +
-            '<span style="font-size:10px;color:var(--text-muted);font-family:'DM Mono',monospace">From:</span>' +
-            '<a href="' + addrUrl + '" target="_blank" rel="noopener" style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(0,229,255,0.8);text-decoration:none;border-bottom:1px dashed rgba(0,229,255,0.3)">' + shortAddr + '</a>' +
-          '</div>' +
-          '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
-            '<span style="font-size:10px;color:var(--text-muted);font-family:'DM Mono',monospace">TX:</span>' +
-            '<a href="' + txUrl + '" target="_blank" rel="noopener" style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(247,147,26,0.85);text-decoration:none;border-bottom:1px dashed rgba(247,147,26,0.3)">' + shortTx + '</a>' +
-            '<span onclick="navigator.clipboard.writeText('' + txidEsc + '').then(function(){showToast('📋 TxID copied!','success')})" style="cursor:pointer;font-size:9px;color:rgba(255,255,255,0.35);border:1px solid rgba(255,255,255,0.12);border-radius:3px;padding:1px 6px">COPY</span>' +
-            '<a href="' + txUrl + '" target="_blank" rel="noopener" style="font-size:9px;color:rgba(247,147,26,0.6);text-decoration:none;border:1px solid rgba(247,147,26,0.2);border-radius:3px;padding:1px 6px">↗ EXPLORER</a>' +
-          '</div>' +
-        '</div>' +
-        '<div style="text-align:right;flex-shrink:0;padding-left:8px">' +
-          '<div style="font-size:14px;font-weight:700;color:var(--orange)">' + tx.amount + ' ' + tx.unit + '</div>' +
-          '<div style="margin-top:5px"><span style="background:' + statusBg + ';color:' + statusColor + ';padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600">' + (tx.status||'confirmed') + '</span></div>' +
-          '<div style="margin-top:5px;font-size:10px;color:var(--text-muted)">' + timeStr + '</div>' +
-        '</div>' +
-      '</div>' +
-      '<div style="padding:0 18px 10px 52px;display:flex;align-items:center;gap:6px">' +
-        '<span style="font-size:9px;background:rgba(0,229,255,0.07);color:rgba(0,229,255,0.6);border:1px solid rgba(0,229,255,0.15);border-radius:4px;padding:1px 7px;font-family:'DM Mono',monospace;letter-spacing:0.05em">OP_NET TESTNET4</span>' +
-        '<span style="font-size:9px;color:rgba(255,255,255,0.2)">•</span>' +
-        '<span style="font-size:9px;color:var(--text-muted)">' + dateStr + '</span>' +
-      '</div>';
+    var mainCol = document.createElement('div');
+    mainCol.style.cssText = 'flex:1;min-width:0';
 
+    var labelEl = document.createElement('div');
+    labelEl.style.cssText = 'font-weight:600;font-size:13px;color:#e8eaf0;margin-bottom:6px';
+    labelEl.textContent = tx.label;
+
+    // From address row
+    var fromRow = document.createElement('div');
+    fromRow.style.cssText = 'display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap';
+    var fromLabel = document.createElement('span');
+    fromLabel.style.cssText = 'font-size:10px;color:var(--text-muted)';
+    fromLabel.textContent = 'From:';
+    var fromLink = document.createElement('a');
+    fromLink.href = addrUrl;
+    fromLink.target = '_blank';
+    fromLink.rel = 'noopener';
+    fromLink.style.cssText = 'font-size:10px;color:rgba(0,229,255,0.8);text-decoration:none;border-bottom:1px dashed rgba(0,229,255,0.3)';
+    fromLink.textContent = shortAddr;
+    fromRow.appendChild(fromLabel);
+    fromRow.appendChild(fromLink);
+
+    // TX hash row
+    var txRow = document.createElement('div');
+    txRow.style.cssText = 'display:flex;align-items:center;gap:6px;flex-wrap:wrap';
+    var txLabel = document.createElement('span');
+    txLabel.style.cssText = 'font-size:10px;color:var(--text-muted)';
+    txLabel.textContent = 'TX:';
+    var txLink = document.createElement('a');
+    txLink.href = txUrl;
+    txLink.target = '_blank';
+    txLink.rel = 'noopener';
+    txLink.style.cssText = 'font-size:10px;color:rgba(247,147,26,0.85);text-decoration:none;border-bottom:1px dashed rgba(247,147,26,0.3)';
+    txLink.textContent = shortTx;
+    var copyBtn = document.createElement('span');
+    copyBtn.style.cssText = 'cursor:pointer;font-size:9px;color:rgba(255,255,255,0.35);border:1px solid rgba(255,255,255,0.12);border-radius:3px;padding:1px 6px';
+    copyBtn.textContent = 'COPY';
+    (function(tid){ copyBtn.onclick = function(){ navigator.clipboard.writeText(tid).then(function(){ showToast('\u{1F4CB} TxID copied!','success'); }); }; })(txid);
+    var explorerBtn = document.createElement('a');
+    explorerBtn.href = txUrl;
+    explorerBtn.target = '_blank';
+    explorerBtn.rel = 'noopener';
+    explorerBtn.style.cssText = 'font-size:9px;color:rgba(247,147,26,0.6);text-decoration:none;border:1px solid rgba(247,147,26,0.2);border-radius:3px;padding:1px 6px';
+    explorerBtn.textContent = '\u2197 EXPLORER';
+    txRow.appendChild(txLabel);
+    txRow.appendChild(txLink);
+    txRow.appendChild(copyBtn);
+    txRow.appendChild(explorerBtn);
+
+    mainCol.appendChild(labelEl);
+    mainCol.appendChild(fromRow);
+    mainCol.appendChild(txRow);
+
+    // Right column: amount + status + time
+    var rightCol = document.createElement('div');
+    rightCol.style.cssText = 'text-align:right;flex-shrink:0;padding-left:8px';
+    var amtEl = document.createElement('div');
+    amtEl.style.cssText = 'font-size:14px;font-weight:700;color:var(--orange)';
+    amtEl.textContent = tx.amount + ' ' + tx.unit;
+    var statusEl2 = document.createElement('div');
+    statusEl2.style.cssText = 'margin-top:5px';
+    var badge = document.createElement('span');
+    badge.style.cssText = 'background:'+stBg+';color:'+stColor+';padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600';
+    badge.textContent = tx.status || 'confirmed';
+    statusEl2.appendChild(badge);
+    var timeEl = document.createElement('div');
+    timeEl.style.cssText = 'margin-top:5px;font-size:10px;color:var(--text-muted)';
+    timeEl.title = _fmtDate(tx.ts);
+    timeEl.textContent = _fmtTime(tx.ts);
+    rightCol.appendChild(amtEl);
+    rightCol.appendChild(statusEl2);
+    rightCol.appendChild(timeEl);
+
+    topRow.appendChild(iconEl);
+    topRow.appendChild(mainCol);
+    topRow.appendChild(rightCol);
+
+    // Bottom badge row
+    var bottomRow = document.createElement('div');
+    bottomRow.style.cssText = 'padding:0 18px 10px 50px;display:flex;align-items:center;gap:6px';
+    var netBadge = document.createElement('span');
+    netBadge.style.cssText = 'font-size:9px;background:rgba(0,229,255,0.07);color:rgba(0,229,255,0.6);border:1px solid rgba(0,229,255,0.15);border-radius:4px;padding:1px 7px;letter-spacing:0.05em';
+    netBadge.textContent = 'OP\u200BNET TESTNET4';
+    var dot = document.createElement('span');
+    dot.style.cssText = 'font-size:9px;color:rgba(255,255,255,0.2)';
+    dot.textContent = '\u2022';
+    var dateEl = document.createElement('span');
+    dateEl.style.cssText = 'font-size:9px;color:var(--text-muted)';
+    dateEl.textContent = _fmtDate(tx.ts);
+    bottomRow.appendChild(netBadge);
+    bottomRow.appendChild(dot);
+    bottomRow.appendChild(dateEl);
+
+    el.appendChild(topRow);
+    el.appendChild(bottomRow);
     rows.appendChild(el);
   });
 }
@@ -4303,12 +4378,12 @@ async function doCompound() {
   var btn = document.getElementById('stake-compound-btn');
   btn.disabled=true; btn.textContent='...';
   try {
-    await _sign('OPiLL Compound|amt:'+_stakeData.claimable.toFixed(6)+'|ts:'+Date.now());
+    var _cpr = await _sign('OPiLL Compound|amt:'+_stakeData.claimable.toFixed(6)+'|ts:'+Date.now());
     await new Promise(function(r){setTimeout(r,800);});
     var amt = _stakeData.claimable;
     _stakeData.totalStaked += amt;
     if (_stakeData.positions[0]) _stakeData.positions[0].amt += amt;
-    _addTx('compound', 'Compound Rewards', amt.toFixed(4), 'OPN', 'confirmed', typeof _cpr!=='undefined'?_cpr.txid:undefined);
+    _addTx('compound', 'Compound Rewards', amt.toFixed(4), 'OPN', 'confirmed', _cpr.txid);
     _stakeData.claimable = 0;
     _stakeRefreshUI();
     showToast('↺ Compounded ' + amt.toFixed(4) + ' OPN!', 'success');
@@ -6294,7 +6369,7 @@ function _faucetAddRecentRow(addr, amount, token) {
       <div style="font-size:40px;margin-bottom:12px">🚪</div>
       <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px">Disconnect Wallet</div>
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px">You are about to disconnect your wallet from OPiLL Protocol.</div>
-      <div id="logout-confirm-addr" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(247,147,26,0.8);background:rgba(247,147,26,0.08);border:1px solid rgba(247,147,26,0.2);border-radius:8px;padding:8px 12px;margin-bottom:20px">--</div>
+      <div id="logout-confirm-addr" style="font-family:DM Mono,monospace;font-size:11px;color:rgba(247,147,26,0.8);background:rgba(247,147,26,0.08);border:1px solid rgba(247,147,26,0.2);border-radius:8px;padding:8px 12px;margin-bottom:20px">--</div>
       <div style="display:flex;gap:10px;justify-content:center">
         <button onclick="closeLogoutConfirm()" style="flex:1;padding:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:var(--text);font-size:13px;cursor:pointer;transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">Cancel</button>
         <button onclick="confirmLogout()" style="flex:1;padding:12px;background:rgba(255,68,102,0.18);border:1px solid rgba(255,68,102,0.4);border-radius:10px;color:#ff4466;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s" onmouseover="this.style.background='rgba(255,68,102,0.3)'" onmouseout="this.style.background='rgba(255,68,102,0.18)'">🚪 Logout</button>
