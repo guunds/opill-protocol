@@ -3043,6 +3043,8 @@ async function lendSupply() {
     _lendState.supplied += usd;
     _lendState.capacity = _lendState.supplied * 0.75;
     _lendPositions.push({type:'supply',asset:_lendState.asset,amount:amt,usd:usd,apy:_lendAPY[_lendState.asset],ts:Date.now()});
+    // ── Save lending to localStorage ──
+    if (window.OPiLLStorage && _dbWallet) OPiLLStorage.saveLending(_lendState, _lendPositions);
     lendRefreshUI();
     _secStatus(statusEl,'success','Supplied ' + amt + ' ' + _lendState.asset.toUpperCase() + ' successfully!');
     showToast('Supplied ' + amt + ' ' + _lendState.asset.toUpperCase(),'success');
@@ -3070,6 +3072,8 @@ async function lendBorrow() {
     await new Promise(function(r){setTimeout(r,1500);});
     _lendState.borrowed += amt;
     _lendPositions.push({type:'borrow',asset:borrowAsset,amount:amt,usd:amt,apr:_lendAPR[borrowAsset]||6.8,ts:Date.now()});
+    // ── Save lending to localStorage ──
+    if (window.OPiLLStorage && _dbWallet) OPiLLStorage.saveLending(_lendState, _lendPositions);
     lendRefreshUI();
     _secStatus(statusEl,'success','Borrowed ' + amt + ' ' + borrowAsset.toUpperCase() + '!');
     showToast('Borrowed ' + amt + ' ' + borrowAsset.toUpperCase(),'success');
@@ -3449,6 +3453,83 @@ function _secStatus(el, type, msg) {
   <!-- ══ ALL JS INLINE — no external dependencies ══ -->
   
 
+<!-- ══ PERSISTENT STORAGE MODULE ══ -->
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  OPiLL Protocol — Persistent Storage Module
+//  Menyimpan semua data ke localStorage agar tidak hilang saat
+//  refresh / tutup browser. Data dibind per wallet address.
+// ═══════════════════════════════════════════════════════════════
+'use strict';
+var OPiLLStorage = (function() {
+  var _wallet = null;
+  function _k(section) { return 'opill_v1_' + (_wallet || 'anon') + '_' + section; }
+  function _save(key, data) { try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) { console.warn('[OPiLLStorage] Save failed:', e.message); } }
+  function _load(key, fallback) { try { var raw = localStorage.getItem(key); if (raw === null || raw === undefined) return fallback; return JSON.parse(raw); } catch(e) { return fallback; } }
+  function _del(key) { try { localStorage.removeItem(key); } catch(e) {} }
+
+  function init(walletAddress) {
+    _wallet = (walletAddress || '').toLowerCase();
+    console.log('[OPiLLStorage] Init for:', _wallet.slice(0,10) + '...');
+  }
+  function saveTxLog(txArray) { _save(_k('txlog'), txArray); }
+  function loadTxLog() { return _load(_k('txlog'), []); }
+
+  function saveStaking(stakeData) {
+    _save(_k('staking'), { tier: stakeData.tier, apy: stakeData.apy, totalStaked: stakeData.totalStaked, claimable: stakeData.claimable, positions: stakeData.positions, lastSaved: Date.now() });
+  }
+  function loadStaking(defaults) {
+    var saved = _load(_k('staking'), null);
+    if (!saved) return defaults;
+    if (saved.positions && saved.lastSaved) {
+      var elapsed = (Date.now() - saved.lastSaved) / 1000 / 60 / 60;
+      var earned = 0;
+      saved.positions.forEach(function(p) {
+        var e = p.amt * (p.apy / 100) * (elapsed / 8760);
+        p.earned = (p.earned || 0) + e;
+        earned += e;
+      });
+      saved.claimable = (saved.claimable || 0) + earned;
+    }
+    return saved;
+  }
+
+  function saveVault(positions) { _save(_k('vault'), { positions: positions, lastSaved: Date.now() }); }
+  function loadVault() {
+    var saved = _load(_k('vault'), null);
+    if (!saved || !saved.positions) return [];
+    if (saved.lastSaved) {
+      var elapsed = (Date.now() - saved.lastSaved) / 1000 / 60 / 60;
+      saved.positions.forEach(function(p) { var e = p.usd * ((parseFloat(p.apy)||12) / 100) * (elapsed / 8760); p.earned = (p.earned || 0) + e; });
+    }
+    return saved.positions;
+  }
+
+  function saveLending(lendState, lendPositions) { _save(_k('lending'), { state: lendState, positions: lendPositions, lastSaved: Date.now() }); }
+  function loadLending() { return _load(_k('lending'), null); }
+
+  function saveAirdrop(points, tasks, breakdown) {
+    _save(_k('airdrop'), { points: points, tasksDone: tasks.filter(function(t){return t.done;}).map(function(t){return t.id;}), breakdown: breakdown });
+  }
+  function loadAirdrop() { return _load(_k('airdrop'), null); }
+
+  function saveUserPoints(points) { _save(_k('points'), points); }
+  function loadUserPoints() { return _load(_k('points'), 0); }
+
+  function clearAll() {
+    ['txlog','staking','vault','lending','airdrop','points'].forEach(function(s){ _del(_k(s)); });
+  }
+  function getUsage() {
+    var total = 0;
+    try { for (var key in localStorage) { if (key.indexOf('opill_v1_'+_wallet) === 0) total += (localStorage.getItem(key)||'').length; } } catch(e) {}
+    return (total/1024).toFixed(2)+' KB';
+  }
+
+  return { init:init, saveTxLog:saveTxLog, loadTxLog:loadTxLog, saveStaking:saveStaking, loadStaking:loadStaking, saveVault:saveVault, loadVault:loadVault, saveLending:saveLending, loadLending:loadLending, saveAirdrop:saveAirdrop, loadAirdrop:loadAirdrop, saveUserPoints:saveUserPoints, loadUserPoints:loadUserPoints, clearAll:clearAll, getUsage:getUsage };
+})();
+window.OPiLLStorage = OPiLLStorage;
+</script>
+
 <script>
 'use strict';
 
@@ -3518,6 +3599,71 @@ async function _dbLoadUser(walletAddr) {
 async function _dbOnWalletConnect(walletAddr) {
   _dbWallet = walletAddr.toLowerCase();
 
+  // ── Init localStorage for this wallet ──
+  if (window.OPiLLStorage) OPiLLStorage.init(_dbWallet);
+
+  // ── Restore Staking from localStorage ──
+  if (window.OPiLLStorage && typeof _stakeData !== 'undefined') {
+    var savedStake = OPiLLStorage.loadStaking(null);
+    if (savedStake && savedStake.positions) {
+      _stakeData.tier        = savedStake.tier        || _stakeData.tier;
+      _stakeData.apy         = savedStake.apy         || _stakeData.apy;
+      _stakeData.totalStaked = savedStake.totalStaked || 0;
+      _stakeData.claimable   = savedStake.claimable   || 0;
+      _stakeData.positions   = savedStake.positions   || [];
+      if (typeof _stakeRefreshUI === 'function') _stakeRefreshUI();
+    }
+  }
+
+  // ── Restore Vault from localStorage ──
+  if (window.OPiLLStorage && typeof _vaultPositions !== 'undefined') {
+    var savedVault = OPiLLStorage.loadVault();
+    if (savedVault && savedVault.length > 0) {
+      _vaultPositions = savedVault;
+      if (typeof _vaultRefreshUI === 'function') _vaultRefreshUI();
+    }
+  }
+
+  // ── Restore Lending from localStorage ──
+  if (window.OPiLLStorage && typeof _lendState !== 'undefined') {
+    var savedLend = OPiLLStorage.loadLending();
+    if (savedLend && savedLend.state) {
+      Object.assign(_lendState, savedLend.state);
+      if (savedLend.positions) {
+        _lendPositions = savedLend.positions;
+      }
+      if (typeof lendRefreshUI === 'function') lendRefreshUI();
+    }
+  }
+
+  // ── Restore TX Log from localStorage (instant, no network) ──
+  if (window.OPiLLStorage) {
+    var localTxs = OPiLLStorage.loadTxLog();
+    if (localTxs.length > 0) {
+      _txLog = localTxs;
+      histRefresh();
+      _histDbStatus('💾', 'Loaded ' + localTxs.length + ' transactions from local storage · Syncing...', 'var(--cyan)');
+    }
+  }
+
+  // ── Restore Airdrop points from localStorage ──
+  if (window.OPiLLStorage) {
+    var savedAirdrop = OPiLLStorage.loadAirdrop();
+    if (savedAirdrop) {
+      if (savedAirdrop.points > 0) _userPoints = savedAirdrop.points;
+      if (savedAirdrop.tasksDone && typeof _apTasks !== 'undefined') {
+        savedAirdrop.tasksDone.forEach(function(taskId) {
+          var task = _apTasks.find(function(t){ return t.id === taskId; });
+          if (task) task.done = true;
+        });
+      }
+      if (savedAirdrop.breakdown && typeof _apPointsBreakdown !== 'undefined') {
+        Object.assign(_apPointsBreakdown, savedAirdrop.breakdown);
+      }
+      if (typeof apRender === 'function') apRender();
+    }
+  }
+
   // Show loading state in history
   _histDbStatus('⏳', 'Connecting to server — loading your history...', 'var(--orange)');
   var hRows = document.getElementById('hist-rows');
@@ -3543,11 +3689,18 @@ async function _dbOnWalletConnect(walletAddr) {
     });
     merged.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
     _txLog = merged;
+    // Save merged list to localStorage
+    if (window.OPiLLStorage) OPiLLStorage.saveTxLog(_txLog);
     histRefresh();
     _histDbStatus('✅', 'Loaded ' + serverTxs.length + ' transactions from server · Saved permanently', 'var(--green)');
     showToast('📋 Loaded ' + serverTxs.length + ' transactions from server', 'info');
   } else {
-    _histDbStatus('🟢', 'Connected to server · New transactions will be saved automatically', 'var(--green)');
+    // Server empty but we might have localStorage data
+    if (_txLog.length > 0) {
+      _histDbStatus('💾', 'Showing ' + _txLog.length + ' locally saved transactions · Server is empty', 'var(--cyan)');
+    } else {
+      _histDbStatus('🟢', 'Connected to server · New transactions will be saved automatically', 'var(--green)');
+    }
   }
 
   // Restore user points + airdrop tasks
@@ -3596,6 +3749,12 @@ function _addTx(type, label, amount, unit, status) {
   // Debounced user profile save
   clearTimeout(_addTx._saveTimer);
   _addTx._saveTimer = setTimeout(_dbSaveUser, 2000);
+
+  // ── Always save to localStorage immediately (survives refresh) ──
+  if (window.OPiLLStorage) {
+    OPiLLStorage.saveTxLog(_txLog);
+    OPiLLStorage.saveUserPoints(_userPoints);
+  }
 
   return tx;
 }
@@ -3924,14 +4083,22 @@ function histExportCSV() {
 
 async function histClearServer() {
   if (!_dbWallet) { showToast('Connect wallet first','error'); return; }
-  if (!confirm('Clear ALL transaction history from server? This cannot be undone.')) return;
+  if (!confirm('Clear ALL transaction history and saved data? This cannot be undone.')) return;
   try {
     await fetch('/api/transactions?wallet_address=' + encodeURIComponent(_dbWallet), { method:'DELETE' });
     _txLog = [];
+    // Also clear localStorage
+    if (window.OPiLLStorage) OPiLLStorage.clearAll();
     histRefresh();
-    _histDbStatus('🗑', 'History cleared from server', 'var(--red)');
-    showToast('🗑 Server history cleared', 'success');
-  } catch(e) { showToast('Failed to clear history', 'error'); }
+    _histDbStatus('🗑', 'History cleared from server & local storage', 'var(--red)');
+    showToast('🗑 All history cleared', 'success');
+  } catch(e) {
+    // Even if server fails, clear local
+    _txLog = [];
+    if (window.OPiLLStorage) OPiLLStorage.clearAll();
+    histRefresh();
+    showToast('🗑 Local history cleared', 'success');
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4102,6 +4269,8 @@ function _stakeRefreshUI() {
     el.innerHTML='<div><div style="font-weight:700">'+p.amt.toFixed(3)+' OPN</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">'+p.tier+' · '+p.apy+'% APY · '+age+'m ago</div></div><div style="text-align:right"><div style="color:var(--green);font-weight:700">+'+p.earned.toFixed(6)+' OPN</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">earned</div></div>';
     list.appendChild(el);
   });
+  // ── Auto-save staking to localStorage ──
+  if (window.OPiLLStorage && _dbWallet) OPiLLStorage.saveStaking(_stakeData);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4163,6 +4332,8 @@ function _vaultRefreshUI() {
     el.innerHTML='<div style="font-size:24px">'+(p.asset==='btc'?'₿':p.asset==='usdt'?'💵':'⚡')+'</div><div><div style="font-weight:700">'+p.vault+'</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">'+p.apy+'% APY</div></div><div><div style="color:var(--text-muted);font-size:10px">Deposited</div><div>'+p.amt.toFixed(4)+' '+p.asset.toUpperCase()+'</div></div><div><div style="color:var(--text-muted);font-size:10px">Earned</div><div style="color:var(--green)">+'+p.earned.toFixed(6)+' OPN</div></div><button onclick="vaultWithdraw('+i+')" style="background:none;border:1px solid var(--border);color:var(--text-muted);border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;white-space:nowrap">Withdraw</button>';
     list.appendChild(el);
   });
+  // ── Auto-save vault to localStorage ──
+  if (window.OPiLLStorage && _dbWallet) OPiLLStorage.saveVault(_vaultPositions);
 }
 
 async function vaultHarvest() {
@@ -4655,6 +4826,8 @@ function apAddPoints(taskId, label, pts) {
     _apPointsBreakdown[label] = (_apPointsBreakdown[label]||0) + pts;
     showToast('⭐ +' + pts + ' pts — ' + label, 'success');
     apRender();
+    // ── Auto-save airdrop to localStorage ──
+    if (window.OPiLLStorage && _dbWallet) OPiLLStorage.saveAirdrop(_apTotalPts, _apTasks, _apPointsBreakdown);
   }
 }
 
