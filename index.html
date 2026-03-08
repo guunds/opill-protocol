@@ -3435,7 +3435,22 @@ async function handleConnect(type) {
     var infoEl = document.getElementById('wallet-info-btn');
 
     if (addrEl) addrEl.textContent = result.address.slice(0,6) + '…' + result.address.slice(-4);
-    if (balEl && result.balance != null) balEl.textContent = (result.balance / 1e8).toFixed(6) + ' BTC';
+    // Balance: fetch from wallet state (populated async by fetchBalance)
+    if (balEl) balEl.textContent = '…';
+    // Subscribe to balance event for real-time updates
+    if (window.Wallet && Wallet.on) {
+      Wallet.on('balance', function(d) {
+        var el = document.getElementById('wallet-balance-display');
+        if (el) el.textContent = (d.btc || (d.sats/1e8)).toFixed(6) + ' BTC';
+      });
+    }
+    // Also poll after short delay in case balance already fetched
+    setTimeout(function() {
+      if (window.Wallet && Wallet.state && Wallet.state.balance > 0) {
+        var el = document.getElementById('wallet-balance-display');
+        if (el) el.textContent = (Wallet.state.balance / 1e8).toFixed(6) + ' BTC';
+      }
+    }, 2000);
     if (btnEl)  { btnEl.style.display='none'; }
     if (infoEl) { infoEl.style.display='flex'; }
     if (iconEl) { iconEl.textContent = {opwallet:'⚡',unisat:'🦄',xverse:'🔮',okx:'⭕'}[type] || '🔗'; }
@@ -4979,8 +4994,55 @@ function _init(){
   // Auto-reconnect
   if(window.Wallet){
     Wallet.tryAutoReconnect().then(function(ok){
-      if(ok) _onConnected(Wallet.state.address);
+      if(ok && Wallet.state && Wallet.state.address) {
+        // Restore header UI on page reload
+        var addrEl = document.getElementById('wallet-address-display');
+        var balEl  = document.getElementById('wallet-balance-display');
+        var btnEl  = document.getElementById('connect-wallet-btn');
+        var infoEl = document.getElementById('wallet-info-btn');
+        var iconEl = document.getElementById('wallet-icon-el');
+        var addr   = Wallet.state.address;
+        if (addrEl) addrEl.textContent = addr.slice(0,6)+'\u2026'+addr.slice(-4);
+        if (balEl)  balEl.textContent  = '\u2026';
+        if (btnEl)  btnEl.style.display  = 'none';
+        if (infoEl) infoEl.style.display = 'flex';
+        if (iconEl) {
+          var icons={opwallet:'\u26a1',unisat:'\U0001F984',xverse:'\U0001F52E',okx:'\u2B55'};
+          iconEl.textContent = icons[Wallet.state.type]||'\U0001F517';
+        }
+        // Balance: subscribe + poll
+        Wallet.on('balance', function(d){
+          var el = document.getElementById('wallet-balance-display');
+          if (el) el.textContent = (d.btc||(d.sats/1e8)).toFixed(6)+' BTC';
+        });
+        setTimeout(function(){
+          if (Wallet.state.balance > 0) {
+            var el = document.getElementById('wallet-balance-display');
+            if (el) el.textContent = (Wallet.state.balance/1e8).toFixed(6)+' BTC';
+          }
+          Wallet.fetchBalance().catch(function(){});
+        }, 1500);
+        if (window._onWalletConnected) _onWalletConnected({address: addr, balance: Wallet.state.balance, type: Wallet.state.type});
+      }
     }).catch(function(){});
+  }
+
+  // Always subscribe to balance updates globally
+  if(window.Wallet && Wallet.on){
+    Wallet.on('balance', function(d){
+      var el = document.getElementById('wallet-balance-display');
+      if(el && el.textContent !== '-- BTC') {
+        el.textContent = (d.btc||(d.sats/1e8)).toFixed(6)+' BTC';
+      }
+    });
+    Wallet.on('accountChanged', function(d){
+      var addrEl = document.getElementById('wallet-address-display');
+      var balEl  = document.getElementById('wallet-balance-display');
+      if(addrEl) addrEl.textContent = d.address.slice(0,6)+'\u2026'+d.address.slice(-4);
+      if(balEl)  balEl.textContent  = '\u2026';
+      Wallet.fetchBalance().catch(function(){});
+      if(window.showToast) showToast('\U0001F504 Account: '+d.address.slice(0,8)+'...','info');
+    });
   }
 
   // Faucet

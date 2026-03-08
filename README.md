@@ -1,348 +1,106 @@
-# OPiLL Protocol
+# OPiLL Protocol — Bitcoin DeFi Frontend
 
-<p align="center">
-Bitcoin DeFi Infrastructure built on the OP_NET ecosystem
-</p>
+Full-stack Bitcoin DeFi dashboard built on OP_NET ecosystem.
 
-<p align="center">
-
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Status](https://img.shields.io/badge/status-active-success)
-![Build](https://img.shields.io/badge/build-passing-brightgreen)
-![Category](https://img.shields.io/badge/category-Bitcoin%20DeFi-orange)
-
-</p>
-
----
-
-# Live Application
-
-Mainnet Dashboard
-
-https://opill-protocol.vercel.app/
-
----
-
-# Overview
-
-OPiLL Protocol is a **Bitcoin-native DeFi platform** built on the **OP_NET ecosystem**.
-
-The platform provides a modular dashboard for interacting with decentralized financial services built on Bitcoin infrastructure.
-
-Users can access multiple DeFi primitives such as staking, lending, prediction markets, NFT marketplace, DAO governance, launchpad infrastructure, and reward systems.
-
-The application is designed with a **modular frontend architecture and serverless backend endpoints** to allow fast deployment and scalability.
-
----
-
-# Platform Modules
-
-The OPiLL Protocol dashboard is divided into multiple product modules.
-
----
-
-## Overview
-
-Core system pages.
-
-• 🏠 Home  
-Main dashboard overview
-
-• 🏆 Leaderboard  
-Top users ranked by activity and rewards
-
-• 📋 History  
-Transaction and protocol interaction history
-
----
-
-## Earn
-
-Yield generating DeFi tools.
-
-• ⚡ Staking  
-Stake protocol tokens to earn rewards (18.5% APR)
-
-• 🏦 Revenue Vault  
-Protocol revenue sharing vault
-
-• 💸 Lending  
-Decentralized lending market
-
-• 🔮 Prediction Market  
-Decentralized event prediction system
-
-• 🌾 Yield Aggregator  
-Automated yield optimization strategies
-
----
-
-## NFT & Social
-
-Digital assets and community features.
-
-• 🖼️ NFT Marketplace  
-Buy and sell protocol NFTs
-
-• 🚀 Launchpad  
-Token and NFT project launches
-
-• 🗳️ DAO Governance  
-Community voting and proposals
-
-• 🎰 Raffle / Lottery  
-Community raffle and reward pools
-
----
-
-## Tools
-
-Protocol utility tools.
-
-• 🔐 Multisig Wallet  
-Multi-signature treasury management
-
-• 🚰 Faucet  
-Testnet / reward token faucet
-
----
-
-## Rewards
-
-Community incentive systems.
-
-• ⭐ Airdrop Points  
-Activity points for ecosystem participation
-
-• 🎁 Airdrop Claim  
-Claim distributed airdrop rewards
-
----
-
-# Core Features
-
-### Multi Wallet Support
-
-Supports major Bitcoin ecosystem wallets.
-
-| Wallet | Provider |
-|------|------|
-| OP_WALLET | window.opnet |
-| UniSat | window.unisat |
-| Xverse | window.XverseProviders |
-| OKX Wallet | window.okxwallet.bitcoin |
-
----
-
-### Real-Time Price Engine
-
-Live token price feeds:
-
-• BTC via CoinGecko  
-• OPN via DexScreener  
-
-Auto refresh interval: **20 seconds**
-
----
-
-### Faucet System
-
-Built-in faucet distribution system.
-
-Features:
-
-• 24 hour rate limit  
-• Address validation  
-• Serverless API endpoint  
-
----
-
-### Activity Feed
-
-Real-time UI activity feed displaying protocol interactions.
-
----
-
-### Countdown Events
-
-Protocol timers used for:
-
-• Launchpad events  
-• Airdrops  
-• Token releases
-
----
-
-# Project Structure
+## 🏗️ Project Structure
 
 ```
 opill-protocol/
-│
-├── index.html
-│
+├── index.html          ← Main app (all sections)
 ├── css/
-│   └── style.css
-│
+│   └── style.css       ← All styles
 ├── js/
-│   ├── wallet.js
-│   ├── opnet.js
-│   ├── price.js
-│   ├── faucet.js
-│   └── ui.js
-│
+│   ├── wallet.js       ← Wallet connection (OP_WALLET, UniSat, Xverse, OKX)
+│   ├── opnet.js        ← OP_NET RPC integration
+│   ├── price.js        ← Real-time token prices (DexScreener + CoinGecko)
+│   ├── faucet.js       ← Faucet system with 24h rate limiting
+│   └── ui.js           ← UI controller, navigation, modal, toast
 ├── api/
-│   ├── faucet.js
-│   └── price.js
-│
-├── vercel.json
-├── netlify.toml
+│   ├── faucet.js       ← Vercel serverless faucet endpoint
+│   └── price.js        ← Vercel serverless price proxy endpoint
+├── vercel.json         ← Vercel deploy config
+├── netlify.toml        ← Netlify deploy config
 └── README.md
 ```
 
----
+## 🚀 Deploy
 
-# Architecture
-
-User  
-│  
-▼  
-Wallet Connection  
-│  
-▼  
-Frontend Dashboard  
-│  
-├ Wallet Integration  
-├ UI Controller  
-├ Price Engine  
-└ Faucet Interface  
-│  
-▼  
-Serverless API  
-│  
-├ Faucet Endpoint  
-└ Price Proxy  
-│  
-▼  
-OP_NET RPC  
-│  
-▼  
-Bitcoin DeFi Infrastructure
-
----
-
-# Deployment
-
-## Vercel (Recommended)
-
-Install CLI
-
-```
-npm install -g vercel
-```
-
-Deploy
-
-```
+### Vercel (Recommended)
+```bash
+npm i -g vercel
 vercel deploy
 ```
 
----
+### Netlify
+Drag & drop the `opill-protocol/` folder to [netlify.com/drop](https://app.netlify.com/drop)
 
-## Netlify
+### Cloudflare Pages
+1. Upload folder via Cloudflare dashboard
+2. Set build command: (empty)
+3. Set publish directory: `.`
 
-Upload project folder or drag & drop
-
-```
-https://netlify.com/drop
-```
-
----
-
-## Cloudflare Pages
-
-Configuration
-
-```
-Build command: (empty)
-Publish directory: .
-```
-
----
-
-# Local Development
-
-Run Python server
-
-```
+### Local Development
+```bash
+# Option 1: Python simple server
 python3 -m http.server 3000
-```
 
-Or Node server
-
-```
+# Option 2: Node
 npx serve .
+
+# Option 3: VS Code Live Server extension
 ```
 
----
+## ✅ Wallet Support
 
-# Environment Variables
+| Wallet | Provider | Status |
+|--------|----------|--------|
+| OP_WALLET | `window.opnet` | ✅ Primary |
+| UniSat | `window.unisat` | ✅ Supported |
+| Xverse | `window.XverseProviders` | ✅ Supported |
+| OKX | `window.okxwallet.bitcoin` | ✅ Supported |
 
-Create `.env` file.
+## 💡 Features
 
+- **Wallet Connection** — Connect/disconnect with session persistence
+- **Balance Display** — Real BTC balance from wallet after connect
+- **Real-Time Prices** — BTC via CoinGecko, OPN via DexScreener (updates every 20s)
+- **Faucet** — 24h rate-limited token claim with backend API
+- **Navigation** — 16 sections: Home, Staking, Vault, Lending, NFT, DAO, Launchpad, etc.
+- **Live Activity Feed** — Animated recent protocol activity
+- **Countdown Timer** — For IDO/airdrop events
+
+## ⚙️ Environment Variables (for Vercel)
+
+Create `.env` in project root (never commit this):
 ```
 OPNET_RPC_URL=https://mainnet.opnet.org
-OPN_CONTRACT_ADDRESS=<contract_address>
-FAUCET_PRIVATE_KEY=<wallet_private_key>
+OPN_CONTRACT_ADDRESS=<your_contract_address>
+FAUCET_PRIVATE_KEY=<wallet_wif_key>
 NETWORK=mainnet
 ```
 
-Never commit `.env` to GitHub.
+## 📦 OP_NET SDK (for production transactions)
+
+```bash
+npm install @btc-vision/transaction @btc-vision/bitcoin opnet
+```
+
+See `api/faucet.js` for commented-out production transaction code.
+
+## 🔧 Customization
+
+- **Token name/symbol**: Search for `OPN` in all files
+- **Contract address**: Update `OPN_CONTRACT_ADDRESS` in env + `api/faucet.js`
+- **Price token**: Update DexScreener query in `js/price.js` and `api/price.js`
+- **Faucet amount**: Change `FAUCET_AMOUNT` in `js/faucet.js` and `api/faucet.js`
+- **RPC endpoint**: Update `ENDPOINTS` in `js/opnet.js`
+
+## 🛡️ Security Notes
+
+- Never put private keys in frontend JS
+- Use environment variables for all secrets
+- Rate limiting is in-memory (use Redis/Upstash KV for production scale)
+- Always simulate transactions before broadcasting
 
 ---
-
-# Security
-
-Best practices used:
-
-• Private keys never stored in frontend  
-• Environment variables used for secrets  
-• Faucet rate limiting implemented  
-• Transactions should be simulated before broadcast  
-
-For production scale use Redis / KV storage.
-
----
-
-# Roadmap
-
-Future protocol development.
-
-• Smart contract integration  
-• Staking reward engine  
-• Cross-chain liquidity bridge  
-• Advanced analytics dashboard  
-• Governance voting upgrades  
-• NFT ecosystem expansion  
-
----
-
-# Contributing
-
-Contributions are welcome.
-
-1 Fork the repository  
-2 Create a feature branch  
-3 Commit your changes  
-4 Open a pull request  
-
----
-
-# License
-
-MIT License
-
----
-
-# OPiLL Protocol
-
-Building the future of **Bitcoin-native DeFi infrastructure**
+Built on Bitcoin Layer 1 · Powered by OP_NET · Trustless · Non-Custodial
