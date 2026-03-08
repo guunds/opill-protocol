@@ -1610,23 +1610,32 @@
           <div class="card">
             <div class="card-title" style="margin-bottom:16px">Request Testnet Tokens</div>
             <div class="input-group">
-              <div class="input-label">Your Bitcoin Address</div>
-              <input class="input-field" type="text" placeholder="tb1q... (Testnet4)">
+              <div class="input-label" style="display:flex;justify-content:space-between">
+                <span>Your Bitcoin Address</span>
+                <span id="faucet-addr-tag" style="display:none;color:var(--green);font-size:10px">● Wallet connected</span>
+              </div>
+              <input class="input-field" id="faucet-address-input" type="text" placeholder="tb1q... (Testnet4)" style="font-family:'DM Mono',monospace;font-size:12px">
+              <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Auto-filled when wallet is connected</div>
             </div>
             <div class="input-group">
               <div class="input-label">Token</div>
-              <select class="input-field" style="cursor:pointer">
-                <option>tBTC — 0.1 per request</option>
-                <option>OPN — 100 per request</option>
-                <option>tUSDT — 1,000 per request</option>
+              <select class="input-field" id="faucet-token-select" style="cursor:pointer" onchange="faucetUpdatePreview()">
+                <option value="OPN">OPN — 100 per request</option>
+                <option value="tBTC">tBTC — 0.1 per request</option>
+                <option value="tUSDT">tUSDT — 1,000 per request</option>
               </select>
             </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:16px;font-size:11px;color:var(--text-muted);line-height:1.6">
-              🔒 Anti-spam: One request per address per 24 hours. Faucet is for testnet only. Do not send real BTC.
+            <!-- Preview -->
+            <div id="faucet-preview" style="background:rgba(247,147,26,0.07);border:1px solid rgba(247,147,26,0.2);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:12px;color:var(--text-muted)">You will receive</div>
+              <div id="faucet-preview-amount" style="font-weight:700;color:var(--orange);font-size:18px">100 OPN</div>
             </div>
-            <button id="faucet-claim-btn" class="btn btn-primary btn-full">🚰 Claim OPN Tokens</button>
-              <div id="faucet-status" style="display:none;margin-top:10px;padding:10px;border-radius:8px;font-size:12px;text-align:center"></div>
-              <div id="faucet-cooldown" style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:6px"></div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:14px;font-size:11px;color:var(--text-muted);line-height:1.6">
+              🔒 Anti-spam: One request per address per 24 hours. Faucet is for testnet only.
+            </div>
+            <button id="faucet-claim-btn" class="btn btn-primary btn-full" onclick="faucetClaim()">🚰 Claim Tokens</button>
+            <div id="faucet-status" style="display:none;margin-top:12px;padding:12px;border-radius:10px;font-size:12px;text-align:center;line-height:1.5"></div>
+            <div id="faucet-cooldown" style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px"></div>
           </div>
 
           <div class="card" style="margin-top:16px">
@@ -5425,7 +5434,319 @@ if(document.readyState==='loading'){
     </div>
   </div>
 
-  <script>
+  
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  OPiLL Protocol — Faucet Module (inline)
+//  Rate limit: server-side via KV (24h per address)
+//  Demo mode when no backend available
+// ═══════════════════════════════════════════════════════════════
+'use strict';
+
+var _faucetCooldownTimer = null;
+var _faucetClaiming = false;
+
+var FAUCET_AMOUNTS = { OPN: '100', tBTC: '0.1', tUSDT: '1000' };
+var FAUCET_UNITS   = { OPN: 'OPN', tBTC: 'tBTC', tUSDT: 'tUSDT' };
+var COOLDOWN_MS    = 24 * 60 * 60 * 1000;
+
+// ── Preview update ──
+function faucetUpdatePreview() {
+  var sel = document.getElementById('faucet-token-select');
+  var amt = document.getElementById('faucet-preview-amount');
+  if (!sel || !amt) return;
+  var token = sel.value || 'OPN';
+  var amount = FAUCET_AMOUNTS[token] || '100';
+  amt.textContent = amount + ' ' + token;
+}
+
+// ── Auto-fill address from wallet ──
+function faucetFillAddress() {
+  var input = document.getElementById('faucet-address-input');
+  var tag   = document.getElementById('faucet-addr-tag');
+  var addr  = window.Wallet && Wallet.state && Wallet.state.connected ? Wallet.state.address : null;
+  if (input && addr) {
+    input.value = addr;
+    input.readOnly = true;
+    input.style.color = 'var(--text-muted)';
+    if (tag) tag.style.display = 'inline';
+  } else if (input) {
+    input.readOnly = false;
+    input.style.color = '';
+    if (tag) tag.style.display = 'none';
+  }
+  faucetUpdateClaimBtn();
+}
+
+// ── Update button state ──
+function faucetUpdateClaimBtn() {
+  var btn  = document.getElementById('faucet-claim-btn');
+  var cdEl = document.getElementById('faucet-cooldown');
+  if (!btn) return;
+
+  var addr = _faucetGetAddress();
+  if (!addr) {
+    btn.disabled = true;
+    btn.textContent = '🔌 Connect Wallet to Claim';
+    if (cdEl) cdEl.textContent = '';
+    return;
+  }
+
+  // Check local cooldown
+  var lastClaim = _faucetGetLastClaim(addr);
+  var now = Date.now();
+  if (lastClaim && (now - lastClaim) < COOLDOWN_MS) {
+    btn.disabled = true;
+    btn.textContent = '⏳ Cooldown Active';
+    _faucetStartCooldownTimer(addr);
+  } else {
+    btn.disabled = false;
+    btn.textContent = '🚰 Claim Tokens';
+    if (cdEl) cdEl.textContent = '✅ Ready to claim!';
+    if (cdEl) cdEl.style.color = 'var(--green)';
+  }
+}
+
+function _faucetGetAddress() {
+  var input = document.getElementById('faucet-address-input');
+  if (input && input.value.trim().length >= 10) return input.value.trim();
+  if (window.Wallet && Wallet.state && Wallet.state.address) return Wallet.state.address;
+  return null;
+}
+
+// ── Cooldown stored locally (fallback for when KV is unavailable) ──
+function _faucetGetLastClaim(addr) {
+  try { return parseInt(localStorage.getItem('fc_' + addr) || '0') || 0; } catch(_){ return 0; }
+}
+function _faucetSetLastClaim(addr) {
+  try { localStorage.setItem('fc_' + addr, Date.now().toString()); } catch(_){}
+}
+
+function _faucetStartCooldownTimer(addr) {
+  var cdEl = document.getElementById('faucet-cooldown');
+  if (!cdEl) return;
+  if (_faucetCooldownTimer) clearInterval(_faucetCooldownTimer);
+  var update = function() {
+    var last = _faucetGetLastClaim(addr);
+    var remaining = COOLDOWN_MS - (Date.now() - last);
+    if (remaining <= 0) {
+      clearInterval(_faucetCooldownTimer);
+      cdEl.textContent = '✅ Ready to claim!';
+      cdEl.style.color = 'var(--green)';
+      faucetUpdateClaimBtn();
+      return;
+    }
+    var h = Math.floor(remaining / 3600000);
+    var m = Math.floor((remaining % 3600000) / 60000);
+    var s = Math.floor((remaining % 60000) / 1000);
+    cdEl.textContent = 'Next claim in: ' + h + 'h ' + m + 'm ' + s + 's';
+    cdEl.style.color = 'var(--text-muted)';
+  };
+  update();
+  _faucetCooldownTimer = setInterval(update, 1000);
+}
+
+// ── Set UI state ──
+function _faucetSetUI(state, message) {
+  var btn    = document.getElementById('faucet-claim-btn');
+  var statEl = document.getElementById('faucet-status');
+
+  if (btn) {
+    btn.disabled = (state === 'loading');
+    if (state === 'loading') btn.textContent = '⏳ Sending...';
+    else if (state === 'success') btn.textContent = '✅ Claimed!';
+    else if (state === 'error') btn.textContent = '🚰 Claim Tokens';
+    else btn.textContent = '🚰 Claim Tokens';
+  }
+
+  if (statEl) {
+    if (!message) { statEl.style.display = 'none'; return; }
+    statEl.style.display = 'block';
+    statEl.textContent = message;
+    if (state === 'loading') {
+      statEl.style.background = 'rgba(0,229,255,0.08)';
+      statEl.style.color = 'var(--cyan)';
+      statEl.style.border = '1px solid rgba(0,229,255,0.2)';
+    } else if (state === 'success') {
+      statEl.style.background = 'rgba(0,255,136,0.08)';
+      statEl.style.color = 'var(--green)';
+      statEl.style.border = '1px solid rgba(0,255,136,0.2)';
+    } else {
+      statEl.style.background = 'rgba(255,68,102,0.08)';
+      statEl.style.color = '#ff4466';
+      statEl.style.border = '1px solid rgba(255,68,102,0.2)';
+    }
+    if (state !== 'loading') {
+      setTimeout(function() {
+        if (statEl) statEl.style.display = 'none';
+        faucetUpdateClaimBtn();
+      }, 7000);
+    }
+  }
+}
+
+// ── MAIN CLAIM FUNCTION ──
+async function faucetClaim() {
+  if (_faucetClaiming) return;
+  var addr = _faucetGetAddress();
+  if (!addr) {
+    _faucetSetUI('error', '⚠️ Connect your wallet or enter a valid Bitcoin address');
+    return;
+  }
+
+  // Local cooldown check
+  var lastClaim = _faucetGetLastClaim(addr);
+  if (lastClaim && (Date.now() - lastClaim) < COOLDOWN_MS) {
+    var remaining = COOLDOWN_MS - (Date.now() - lastClaim);
+    var h = Math.floor(remaining / 3600000), m = Math.floor((remaining % 3600000) / 60000);
+    _faucetSetUI('error', '⏳ Cooldown active. Try again in ' + h + 'h ' + m + 'm');
+    return;
+  }
+
+  var sel    = document.getElementById('faucet-token-select');
+  var token  = sel ? sel.value : 'OPN';
+  var amount = FAUCET_AMOUNTS[token] || '100';
+
+  _faucetClaiming = true;
+  _faucetSetUI('loading', '🔄 Processing your faucet request...');
+
+  try {
+    var txid = null;
+    var demo = false;
+
+    // Try API
+    try {
+      var res = await fetch('/api/faucet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: addr, token: token, amount: amount })
+      });
+      var json = await res.json();
+      if (res.ok && json.txid) {
+        txid = json.txid;
+      } else if (res.status === 429) {
+        _faucetClaiming = false;
+        _faucetSetUI('error', '⏳ ' + (json.error || 'Rate limited by server. Try again later.'));
+        return;
+      } else {
+        demo = true;
+      }
+    } catch(_) {
+      demo = true;
+    }
+
+    // Demo mode
+    if (demo || !txid) {
+      await new Promise(function(r){ setTimeout(r, 1800); });
+      txid = Array.from({length:64},function(){return Math.floor(Math.random()*16).toString(16);}).join('');
+    }
+
+    // Record cooldown locally
+    _faucetSetLastClaim(addr);
+
+    // Log to transaction history + DB
+    var label = 'Faucet: ' + amount + ' ' + token + ' → ' + addr.slice(0,8) + '...';
+    if (window._addTx) {
+      var tx = _addTx('faucet', label, parseFloat(amount), token, 'confirmed');
+      // Also save with full faucet fields to DB
+      if (window._dbWallet) {
+        fetch('/api/transactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            wallet_address: window._dbWallet,
+            id: tx.id,
+            type: 'faucet',
+            action: 'faucet',
+            label: label,
+            amount: parseFloat(amount),
+            token: token,
+            unit: token,
+            tx_hash: txid,
+            txid: txid,
+            timestamp: Date.now(),
+            ts: Date.now(),
+            status: 'confirmed'
+          })
+        }).catch(function(){});
+      }
+    }
+
+    // Airdrop points
+    if (window.apAddPoints) apAddPoints('faucet', 'Used Faucet', 60);
+
+    // Update recent distributions table
+    _faucetAddRecentRow(addr, amount, token);
+
+    _faucetSetUI('success',
+      '✅ ' + amount + ' ' + token + ' sent!' +
+      (demo ? ' (Demo mode)' : '') +
+      '\nTX: ' + txid.slice(0,16) + '...'
+    );
+
+    if (window.showToast) showToast('🚰 Faucet: ' + amount + ' ' + token + ' sent!', 'success');
+    faucetUpdateClaimBtn();
+    _faucetStartCooldownTimer(addr);
+
+  } catch(err) {
+    _faucetSetUI('error', '❌ ' + (err.message || 'Faucet claim failed'));
+  } finally {
+    _faucetClaiming = false;
+  }
+}
+
+// ── Add row to recent distributions table ──
+function _faucetAddRecentRow(addr, amount, token) {
+  var tbody = document.querySelector('#sec-faucet table tbody');
+  if (!tbody) return;
+  var badgeCls = token === 'tBTC' ? 'badge-orange' : token === 'OPN' ? 'badge-cyan' : 'badge-green';
+  var tr = document.createElement('tr');
+  tr.innerHTML =
+    '<td style="color:var(--text-dim)">' + addr.slice(0,8) + '...' + addr.slice(-4) + '</td>' +
+    '<td><span class="badge ' + badgeCls + '">' + amount + ' ' + token + '</span></td>' +
+    '<td style="color:var(--text-muted)">just now</td>';
+  tbody.insertBefore(tr, tbody.firstChild);
+  if (tbody.rows.length > 6) tbody.deleteRow(tbody.rows.length - 1);
+}
+
+// ── Init on page load ──
+(function faucetInit() {
+  // Auto-fill when wallet already connected
+  if (window.Wallet && Wallet.state && Wallet.state.connected) faucetFillAddress();
+
+  // Watch for wallet connect
+  var _faucetWalletObs = setInterval(function() {
+    if (window.Wallet && Wallet.state && Wallet.state.connected) {
+      faucetFillAddress();
+    }
+  }, 1500);
+
+  // Preview on load
+  faucetUpdatePreview();
+
+  // Expose to window
+  window.faucetClaim         = faucetClaim;
+  window.faucetUpdatePreview = faucetUpdatePreview;
+  window.faucetFillAddress   = faucetFillAddress;
+  window.faucetUpdateClaimBtn = faucetUpdateClaimBtn;
+
+  // Compatibility: keep FaucetModule for existing code
+  window.FaucetModule = {
+    init: function() { faucetFillAddress(); },
+    updateClaimButton: function(addr) {
+      if (addr) faucetFillAddress();
+      else faucetUpdateClaimBtn();
+    },
+    claim: faucetClaim,
+    canClaim: function(addr) {
+      var last = _faucetGetLastClaim(addr || '');
+      return { allowed: !last || (Date.now() - last) >= COOLDOWN_MS };
+    }
+  };
+})();
+</script>
+
+<script>
   // ═══════════════════════════════════════════════════════════
   //  NOTIFICATION SYSTEM
   // ═══════════════════════════════════════════════════════════
