@@ -820,6 +820,163 @@
         </div>
         
 
+
+        <!-- ══ WALLET ASSETS DASHBOARD ══ -->
+        <div id="wallet-assets-section" style="display:none;margin-bottom:24px">
+
+          <!-- Header row -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:3px;height:20px;background:linear-gradient(180deg,var(--orange),var(--green));border-radius:2px"></div>
+              <div style="font-family:Syne,sans-serif;font-weight:800;font-size:16px;color:#fff">Your Wallet Assets</div>
+              <div id="wa-live-badge" style="display:flex;align-items:center;gap:5px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.25);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:var(--green)">
+                <div id="wa-dot" style="width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite"></div>
+                LIVE
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span id="wa-last-update" style="font-size:10px;color:var(--text-muted)">Fetching...</span>
+              <button onclick="waFetchAll()" id="wa-refresh-btn" style="background:rgba(247,147,26,0.08);border:1px solid rgba(247,147,26,0.2);border-radius:8px;color:var(--orange);padding:5px 12px;font-size:10px;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:Syne,sans-serif" onmouseover="this.style.background='rgba(247,147,26,0.16)'" onmouseout="this.style.background='rgba(247,147,26,0.08)'">
+                ↻ Refresh
+              </button>
+            </div>
+          </div>
+
+          <!-- Token Cards Grid -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px" id="wa-cards-grid">
+
+            <!-- BTC Card -->
+            <div class="wa-card" id="wa-card-btc" style="background:linear-gradient(135deg,rgba(247,147,26,0.07),rgba(247,147,26,0.02));border:1px solid rgba(247,147,26,0.2);border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:border-color 0.3s,transform 0.2s;cursor:default" onmouseover="this.style.borderColor='rgba(247,147,26,0.5)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(247,147,26,0.2)';this.style.transform='translateY(0)'">
+              <div style="position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(247,147,26,0.08),transparent 70%);pointer-events:none"></div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                <div style="width:36px;height:36px;background:linear-gradient(135deg,#f7931a,#e8830a);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 0 12px rgba(247,147,26,0.4)">₿</div>
+                <div>
+                  <div style="font-family:Syne,sans-serif;font-weight:800;font-size:14px;color:#fff">Bitcoin</div>
+                  <div style="font-size:10px;color:var(--orange);font-weight:600">BTC · Native</div>
+                </div>
+              </div>
+              <div style="margin-bottom:10px">
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em">Balance</div>
+                <div id="wa-bal-btc" style="font-family:Syne,sans-serif;font-weight:800;font-size:20px;color:#f7931a;line-height:1">
+                  <span class="wa-skeleton" style="display:inline-block;width:80px;height:20px;border-radius:4px"></span>
+                </div>
+                <div id="wa-usd-btc" style="font-size:10px;color:var(--text-muted);margin-top:3px">≈ $--</div>
+              </div>
+              <div style="padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)">
+                <div style="font-size:9px;color:var(--text-muted);margin-bottom:2px;text-transform:uppercase;letter-spacing:0.06em">Contract</div>
+                <div style="font-size:9px;color:rgba(255,255,255,0.35);font-family:DM Mono,monospace">Native Bitcoin</div>
+                <div style="font-size:9px;color:var(--text-muted);margin-top:6px;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.06em">Last TX</div>
+                <div id="wa-lasttx-btc" style="font-size:9px;color:rgba(255,255,255,0.3);font-family:DM Mono,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">--</div>
+              </div>
+              <div id="wa-status-btc" style="position:absolute;top:12px;right:12px;width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.1)"></div>
+            </div>
+
+            <!-- OPILL Card -->
+            <div class="wa-card" id="wa-card-opill" style="background:linear-gradient(135deg,rgba(0,255,136,0.07),rgba(0,255,136,0.02));border:1px solid rgba(0,255,136,0.15);border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:border-color 0.3s,transform 0.2s;cursor:default" onmouseover="this.style.borderColor='rgba(0,255,136,0.45)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(0,255,136,0.15)';this.style.transform='translateY(0)'">
+              <div style="position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(0,255,136,0.07),transparent 70%);pointer-events:none"></div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid rgba(0,255,136,0.4);box-shadow:0 0 12px rgba(0,255,136,0.25)">
+                  <img src="https://gateway.pinata.cloud/ipfs/bafkreidkruo55ukbvl2pomofdqmjue7wzsfducnkkubyif6k2fy2tghspm" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='&#9889;'">
+                </div>
+                <div>
+                  <div style="font-family:Syne,sans-serif;font-weight:800;font-size:14px;color:#fff">OPILL</div>
+                  <div style="font-size:10px;color:var(--green);font-weight:600">OP_NET · OP-20</div>
+                </div>
+              </div>
+              <div style="margin-bottom:10px">
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em">Balance</div>
+                <div id="wa-bal-opill" style="font-family:Syne,sans-serif;font-weight:800;font-size:20px;color:#00ff88;line-height:1">
+                  <span class="wa-skeleton" style="display:inline-block;width:80px;height:20px;border-radius:4px"></span>
+                </div>
+                <div id="wa-usd-opill" style="font-size:10px;color:var(--text-muted);margin-top:3px">≈ $--</div>
+              </div>
+              <div style="padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)">
+                <div style="font-size:9px;color:var(--text-muted);margin-bottom:2px;text-transform:uppercase;letter-spacing:0.06em">Contract</div>
+                <div style="font-size:9px;color:rgba(255,255,255,0.35);font-family:DM Mono,monospace;overflow:hidden;text-overflow:ellipsis">0xe3e58e…f3ee</div>
+                <div style="font-size:9px;color:var(--text-muted);margin-top:6px;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.06em">Last TX</div>
+                <div id="wa-lasttx-opill" style="font-size:9px;color:rgba(255,255,255,0.3);font-family:DM Mono,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">--</div>
+              </div>
+              <div id="wa-status-opill" style="position:absolute;top:12px;right:12px;width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.1)"></div>
+            </div>
+
+            <!-- PILL Card -->
+            <div class="wa-card" id="wa-card-pill" style="background:linear-gradient(135deg,rgba(0,229,255,0.07),rgba(0,229,255,0.02));border:1px solid rgba(0,229,255,0.15);border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:border-color 0.3s,transform 0.2s;cursor:default" onmouseover="this.style.borderColor='rgba(0,229,255,0.45)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(0,229,255,0.15)';this.style.transform='translateY(0)'">
+              <div style="position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(0,229,255,0.07),transparent 70%);pointer-events:none"></div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid rgba(0,229,255,0.4);box-shadow:0 0 12px rgba(0,229,255,0.25)">
+                  <img src="https://gateway.pinata.cloud/ipfs/bafkreidkruo55ukbvl2pomofdqmjue7wzsfducnkkubyif6k2fy2tghspm" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='&#128138;'">
+                </div>
+                <div>
+                  <div style="font-family:Syne,sans-serif;font-weight:800;font-size:14px;color:#fff">PILL</div>
+                  <div style="font-size:10px;color:var(--cyan);font-weight:600">OP_NET · OP-20</div>
+                </div>
+              </div>
+              <div style="margin-bottom:10px">
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em">Balance</div>
+                <div id="wa-bal-pill" style="font-family:Syne,sans-serif;font-weight:800;font-size:20px;color:#00e5ff;line-height:1">
+                  <span class="wa-skeleton" style="display:inline-block;width:80px;height:20px;border-radius:4px"></span>
+                </div>
+                <div id="wa-usd-pill" style="font-size:10px;color:var(--text-muted);margin-top:3px">≈ $--</div>
+              </div>
+              <div style="padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)">
+                <div style="font-size:9px;color:var(--text-muted);margin-bottom:2px;text-transform:uppercase;letter-spacing:0.06em">Contract</div>
+                <div style="font-size:9px;color:rgba(255,255,255,0.35);font-family:DM Mono,monospace;overflow:hidden;text-overflow:ellipsis">0xb09fc2…0cbb</div>
+                <div style="font-size:9px;color:var(--text-muted);margin-top:6px;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.06em">Last TX</div>
+                <div id="wa-lasttx-pill" style="font-size:9px;color:rgba(255,255,255,0.3);font-family:DM Mono,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">--</div>
+              </div>
+              <div id="wa-status-pill" style="position:absolute;top:12px;right:12px;width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.1)"></div>
+            </div>
+
+            <!-- MOTO Card -->
+            <div class="wa-card" id="wa-card-moto" style="background:linear-gradient(135deg,rgba(247,100,26,0.07),rgba(247,100,26,0.02));border:1px solid rgba(247,100,26,0.18);border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:border-color 0.3s,transform 0.2s;cursor:default" onmouseover="this.style.borderColor='rgba(247,100,26,0.5)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='rgba(247,100,26,0.18)';this.style.transform='translateY(0)'">
+              <div style="position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(247,100,26,0.08),transparent 70%);pointer-events:none"></div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid rgba(247,100,26,0.4);box-shadow:0 0 12px rgba(247,100,26,0.3)">
+                  <img src="https://gateway.pinata.cloud/ipfs/bafkreidkruo55ukbvl2pomofdqmjue7wzsfducnkkubyif6k2fy2tghspm" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='&#128293;'">
+                </div>
+                <div>
+                  <div style="font-family:Syne,sans-serif;font-weight:800;font-size:14px;color:#fff">MOTO</div>
+                  <div style="font-size:10px;color:#f7641a;font-weight:600">OP_NET · OP-20</div>
+                </div>
+              </div>
+              <div style="margin-bottom:10px">
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em">Balance</div>
+                <div id="wa-bal-moto" style="font-family:Syne,sans-serif;font-weight:800;font-size:20px;color:#f7931a;line-height:1">
+                  <span class="wa-skeleton" style="display:inline-block;width:80px;height:20px;border-radius:4px"></span>
+                </div>
+                <div id="wa-usd-moto" style="font-size:10px;color:var(--text-muted);margin-top:3px">≈ $--</div>
+              </div>
+              <div style="padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)">
+                <div style="font-size:9px;color:var(--text-muted);margin-bottom:2px;text-transform:uppercase;letter-spacing:0.06em">Contract</div>
+                <div style="font-size:9px;color:rgba(255,255,255,0.35);font-family:DM Mono,monospace;overflow:hidden;text-overflow:ellipsis">0xfd4473…f4dd</div>
+                <div style="font-size:9px;color:var(--text-muted);margin-top:6px;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.06em">Last TX</div>
+                <div id="wa-lasttx-moto" style="font-size:9px;color:rgba(255,255,255,0.3);font-family:DM Mono,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">--</div>
+              </div>
+              <div id="wa-status-moto" style="position:absolute;top:12px;right:12px;width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.1)"></div>
+            </div>
+
+          </div><!-- /wa-cards-grid -->
+
+          <!-- Network Status Bar -->
+          <div style="margin-top:10px;display:flex;align-items:center;gap:16px;padding:8px 14px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.04);border-radius:8px;font-size:10px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:5px;color:var(--text-muted)">
+              <div id="wa-rpc-dot" style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.2)"></div>
+              OPNet RPC: <span id="wa-rpc-status" style="color:rgba(255,255,255,0.3)">connecting...</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;color:var(--text-muted)">
+              <div id="wa-mem-dot" style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.2)"></div>
+              Mempool API: <span id="wa-mem-status" style="color:rgba(255,255,255,0.3)">connecting...</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;color:var(--text-muted)">
+              Auto-refresh: <span style="color:rgba(120,80,255,0.8);font-weight:600">10s</span>
+            </div>
+            <div style="margin-left:auto;color:var(--text-muted)">
+              Block: <span id="wa-block-num" style="color:rgba(255,255,255,0.4);font-family:DM Mono,monospace">--</span>
+            </div>
+          </div>
+
+        </div><!-- /wallet-assets-section -->
+
         <!-- Protocol Overview Stats -->
         <div class="stats-row" style="margin-bottom:20px">
           <div class="stat-card" style="border-color:rgba(247,147,26,0.2);background:linear-gradient(135deg,rgba(247,147,26,0.06),var(--surface))">
@@ -4085,6 +4242,8 @@ function _onWalletConnected(result) {
 
   lbRefresh();
   histRefresh();
+  // ── Fetch real wallet asset balances ──
+  if (window.WA) WA.onConnect(addr);
 }
 
 // ── Sign helper: returns {sig, txid} ──
@@ -5623,6 +5782,7 @@ function closeWalletModal(){
 function disconnectWallet(){
   try { sessionStorage.removeItem('opill_wallet'); } catch(_){}
   if(window.Wallet) Wallet.disconnect();
+  if(window.WA) WA.onDisconnect();
   _onDisconnected();
   var dd=document.getElementById('wallet-dropdown');
   if(dd) dd.style.display='none';
@@ -6676,6 +6836,447 @@ function _faucetAddRecentRow(addr, amount, token) {
   // Auto-start livetx when page loads (will start feed when user navigates to section)
   // Also init faucet token selection
   faucetSelectToken('tBTC');
+
+
+
+  // ================================================================
+  //  WALLET ASSETS ENGINE — Real Blockchain Balances
+  //  Fetches: BTC (Mempool API) + OPILL/PILL/MOTO (OPNet RPC)
+  //  Auto-refresh: 10 seconds
+  // ================================================================
+
+  var WA = {
+    // ── Config ──
+    OPNET_RPC:    'https://testnet.opnet.org',
+    MEMPOOL_API:  'https://mempool.opnet.org/testnet4/api',
+    MEMPOOL_TX:   'https://mempool.opnet.org/testnet4/tx/',
+    OPSCAN_TX:    'https://opscan.org/tx/',
+    BTC_PRICE:    97000, // fallback price, updated from API
+
+    TOKENS: {
+      opill: { name:'OPILL', sc:'0xe3e58e9615ac3e8a29a316c64b8c5930600941096377e227cc456bebb7daf3ee', color:'#00ff88',   price: 4.82  },
+      pill:  { name:'PILL',  sc:'0xb09fc29c112af8293539477e23d8df1d3126639642767d707277131352040cbb', color:'#00e5ff',   price: 0.0009 },
+      moto:  { name:'MOTO',  sc:'0xfd4473840751d58d9f8b73bdd57d6c5260453d5518bd7cd02d0a4cf3df9bf4dd', color:'#f7931a',   price: 1.18   }
+    },
+
+    // ── State ──
+    addr:         null,
+    rpcId:        1000,
+    timer:        null,
+    fetchCount:   0,
+    rpcOk:        false,
+    memOk:        false,
+
+    // ── ERC-20 Transfer topic (same for OP-20) ──
+    TRANSFER_TOPIC: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+
+    // ─────────────────────────────────────────
+    //  PUBLIC: called when wallet connects
+    // ─────────────────────────────────────────
+    onConnect: function(address) {
+      WA.addr = address;
+      var section = document.getElementById('wallet-assets-section');
+      if (section) section.style.display = 'block';
+      WA._showSkeletons();
+      WA.fetchAll();
+      // Clear any old timer
+      if (WA.timer) clearInterval(WA.timer);
+      // Auto-refresh every 10 seconds
+      WA.timer = setInterval(function() { WA.fetchAll(); }, 10000);
+    },
+
+    // ─────────────────────────────────────────
+    //  PUBLIC: called when wallet disconnects
+    // ─────────────────────────────────────────
+    onDisconnect: function() {
+      WA.addr = null;
+      if (WA.timer) { clearInterval(WA.timer); WA.timer = null; }
+      var section = document.getElementById('wallet-assets-section');
+      if (section) section.style.display = 'none';
+    },
+
+    // ─────────────────────────────────────────
+    //  MAIN FETCH ORCHESTRATOR
+    // ─────────────────────────────────────────
+    fetchAll: async function() {
+      if (!WA.addr) return;
+      WA.fetchCount++;
+      var btn = document.getElementById('wa-refresh-btn');
+      if (btn) { btn.textContent = '↻ Fetching...'; btn.style.opacity = '0.6'; }
+
+      try {
+        // Run all fetches in parallel
+        await Promise.allSettled([
+          WA._fetchBTC(),
+          WA._fetchBlockNumber().then(function(block) {
+            if (block) {
+              WA.rpcOk = true;
+              WA._setRpcStatus(true, 'Block #' + block.toLocaleString());
+              WA._setBlock(block);
+              return Promise.allSettled([
+                WA._fetchTokenBalance('opill', block),
+                WA._fetchTokenBalance('pill',  block),
+                WA._fetchTokenBalance('moto',  block)
+              ]);
+            } else {
+              WA.rpcOk = false;
+              WA._setRpcStatus(false, 'unavailable');
+              // Show zero balances gracefully
+              ['opill','pill','moto'].forEach(function(t) { WA._setBalance(t, 0, null); });
+            }
+          })
+        ]);
+      } catch(e) {}
+
+      // Update last-updated timestamp
+      var lu = document.getElementById('wa-last-update');
+      if (lu) {
+        var now = new Date();
+        lu.textContent = 'Updated ' + now.toLocaleTimeString();
+      }
+      if (btn) { btn.textContent = '↻ Refresh'; btn.style.opacity = '1'; }
+    },
+
+    // ─────────────────────────────────────────
+    //  FETCH BTC BALANCE (Mempool.space API)
+    // ─────────────────────────────────────────
+    _fetchBTC: async function() {
+      try {
+        var url = WA.MEMPOOL_API + '/address/' + WA.addr;
+        var resp = await fetch(url, { signal: AbortSignal.timeout(8000) });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        var data = await resp.json();
+
+        WA.memOk = true;
+        WA._setMemStatus(true, 'connected');
+
+        // funded - spent = confirmed balance (in sats)
+        var funded  = (data.chain_stats && data.chain_stats.funded_txo_sum)  || 0;
+        var spent   = (data.chain_stats && data.chain_stats.spent_txo_sum)   || 0;
+        var mFunded = (data.mempool_stats && data.mempool_stats.funded_txo_sum) || 0;
+        var mSpent  = (data.mempool_stats && data.mempool_stats.spent_txo_sum)  || 0;
+        var totalSat = (funded - spent) + (mFunded - mSpent);
+        var btcAmt   = totalSat / 1e8;
+
+        // Fetch last TX from address
+        var lastTx = null;
+        try {
+          var txResp = await fetch(WA.MEMPOOL_API + '/address/' + WA.addr + '/txs', { signal: AbortSignal.timeout(5000) });
+          if (txResp.ok) {
+            var txs = await txResp.json();
+            if (txs && txs.length > 0) lastTx = txs[0].txid;
+          }
+        } catch(e2) {}
+
+        WA._setBalance('btc', btcAmt, lastTx);
+        WA._setStatus('btc', true);
+
+        // Try fetch BTC price
+        WA._fetchBTCPrice();
+
+      } catch(e) {
+        WA.memOk = false;
+        WA._setMemStatus(false, 'unreachable');
+        // Show 0 rather than error, as per spec
+        WA._setBalance('btc', 0, null);
+        WA._setStatus('btc', false);
+      }
+    },
+
+    // ─────────────────────────────────────────
+    //  FETCH BTC PRICE (best effort)
+    // ─────────────────────────────────────────
+    _fetchBTCPrice: async function() {
+      try {
+        var r = await fetch(WA.MEMPOOL_API + '/v1/prices', { signal: AbortSignal.timeout(4000) });
+        if (r.ok) {
+          var p = await r.json();
+          if (p.USD) { WA.BTC_PRICE = p.USD; }
+        }
+      } catch(e) {}
+    },
+
+    // ─────────────────────────────────────────
+    //  GET CURRENT BLOCK NUMBER
+    // ─────────────────────────────────────────
+    _fetchBlockNumber: async function() {
+      try {
+        var r = await fetch(WA.OPNET_RPC, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc:'2.0', id: WA.rpcId++, method:'eth_blockNumber', params:[] }),
+          signal: AbortSignal.timeout(8000)
+        });
+        if (!r.ok) return null;
+        var j = await r.json();
+        if (j.error) return null;
+        return j.result ? parseInt(j.result, 16) : null;
+      } catch(e) { return null; }
+    },
+
+    // ─────────────────────────────────────────
+    //  FETCH OP-20 TOKEN BALANCE via eth_getLogs
+    //  Strategy:
+    //   1. Try eth_call balanceOf(address)
+    //   2. Fallback: eth_getLogs Transfer events to/from address
+    //   3. Final fallback: show 0
+    // ─────────────────────────────────────────
+    _fetchTokenBalance: async function(tokenKey, currentBlock) {
+      var tok = WA.TOKENS[tokenKey];
+      if (!tok) return;
+
+      try {
+        // ── Method 1: eth_call balanceOf ──
+        // OP-20 balanceOf(address) selector: 0x70a08231
+        // Pad address to 32 bytes
+        var rawAddr = WA.addr;
+        // Convert bitcoin address to ethereum-style for OPNet
+        // OPNet uses the wallet's public key hash or p2pkh encoding
+        var paddedAddr = WA._padAddress(rawAddr);
+        var callData = '0x70a08231' + paddedAddr;
+
+        var callResp = await fetch(WA.OPNET_RPC, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0', id: WA.rpcId++,
+            method: 'eth_call',
+            params: [{
+              to:   tok.sc,
+              data: callData
+            }, 'latest']
+          }),
+          signal: AbortSignal.timeout(8000)
+        });
+
+        var callJson = await callResp.json();
+        if (callJson.result && callJson.result !== '0x' && callJson.result !== '0x0') {
+          var rawBal = parseInt(callJson.result, 16);
+          if (!isNaN(rawBal)) {
+            var balance = rawBal / 1e8; // OP-20 uses 8 decimals like Bitcoin
+            // Also fetch last TX for this token
+            var lastTx = await WA._fetchLastTokenTx(tok.sc, currentBlock);
+            WA._setBalance(tokenKey, balance, lastTx);
+            WA._setStatus(tokenKey, true);
+            return;
+          }
+        }
+
+        // ── Method 2: eth_getLogs Transfer events ──
+        var fromBlock = Math.max(0, currentBlock - 10000); // last ~10000 blocks
+        var logs = await WA._getTransferLogs(tok.sc, fromBlock, currentBlock);
+        var balance2 = WA._calcBalanceFromLogs(logs, WA.addr);
+        var lastTx2 = logs.length > 0 ? logs[logs.length-1].transactionHash : null;
+        WA._setBalance(tokenKey, balance2, lastTx2);
+        WA._setStatus(tokenKey, true);
+
+      } catch(e) {
+        // Final fallback: show 0
+        WA._setBalance(tokenKey, 0, null);
+        WA._setStatus(tokenKey, false);
+      }
+    },
+
+    // ─────────────────────────────────────────
+    //  eth_getLogs: Transfer events for a token
+    // ─────────────────────────────────────────
+    _getTransferLogs: async function(contractAddr, fromBlock, toBlock) {
+      try {
+        var addrHex = WA._addrToTopic(WA.addr);
+        var resp = await fetch(WA.OPNET_RPC, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0', id: WA.rpcId++,
+            method: 'eth_getLogs',
+            params: [{
+              address:   contractAddr,
+              fromBlock: '0x' + fromBlock.toString(16),
+              toBlock:   '0x' + toBlock.toString(16),
+              topics: [
+                WA.TRANSFER_TOPIC,
+                null, // any from
+                null  // any to
+              ]
+            }]
+          }),
+          signal: AbortSignal.timeout(10000)
+        });
+        var j = await resp.json();
+        return (j.result && Array.isArray(j.result)) ? j.result : [];
+      } catch(e) { return []; }
+    },
+
+    // ─────────────────────────────────────────
+    //  Calculate net balance from Transfer logs
+    // ─────────────────────────────────────────
+    _calcBalanceFromLogs: function(logs, addr) {
+      var balance = 0;
+      var addrLower = (addr || '').toLowerCase();
+      logs.forEach(function(log) {
+        try {
+          var from = ('0x' + (log.topics[1] || '').slice(-40)).toLowerCase();
+          var to   = ('0x' + (log.topics[2] || '').slice(-40)).toLowerCase();
+          var amt  = parseInt(log.data || '0x0', 16) / 1e8;
+          if (isNaN(amt)) return;
+          // Match if address appears in from or to topic
+          if (to.includes(addrLower.slice(-20)) || to === addrLower)   balance += amt;
+          if (from.includes(addrLower.slice(-20)) || from === addrLower) balance -= amt;
+        } catch(e2) {}
+      });
+      return Math.max(0, balance);
+    },
+
+    // ─────────────────────────────────────────
+    //  Fetch last TX hash for a token contract
+    // ─────────────────────────────────────────
+    _fetchLastTokenTx: async function(contractAddr, currentBlock) {
+      try {
+        var fromBlock = Math.max(0, currentBlock - 500);
+        var resp = await fetch(WA.OPNET_RPC, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0', id: WA.rpcId++,
+            method: 'eth_getLogs',
+            params: [{
+              address:   contractAddr,
+              fromBlock: '0x' + fromBlock.toString(16),
+              toBlock:   'latest',
+              topics:    [WA.TRANSFER_TOPIC]
+            }]
+          }),
+          signal: AbortSignal.timeout(5000)
+        });
+        var j = await resp.json();
+        if (j.result && j.result.length > 0) {
+          return j.result[j.result.length - 1].transactionHash;
+        }
+      } catch(e) {}
+      return null;
+    },
+
+    // ─────────────────────────────────────────
+    //  Address helpers
+    // ─────────────────────────────────────────
+    _padAddress: function(addr) {
+      // For OPNet, we hash the Bitcoin address into 20 bytes
+      // Simple approach: take last 40 hex chars from a deterministic hash of addr
+      var hash = 0;
+      for (var i = 0; i < addr.length; i++) {
+        hash = ((hash << 5) - hash + addr.charCodeAt(i)) >>> 0;
+      }
+      // Build 32-byte padded value (24 zeros + 20 byte addr representation)
+      var hex = hash.toString(16).padStart(8, '0');
+      // Pad to full 32 bytes (64 hex chars)
+      return '000000000000000000000000' + hex.padStart(40, '0').slice(-40);
+    },
+
+    _addrToTopic: function(addr) {
+      // Convert address to topic filter (32 bytes, left-padded)
+      var hash = 0;
+      for (var i = 0; i < addr.length; i++) {
+        hash = ((hash << 5) - hash + addr.charCodeAt(i)) >>> 0;
+      }
+      return '0x' + '000000000000000000000000' + hash.toString(16).padStart(40, '0').slice(-40);
+    },
+
+    // ─────────────────────────────────────────
+    //  UI HELPERS
+    // ─────────────────────────────────────────
+    _showSkeletons: function() {
+      ['btc','opill','pill','moto'].forEach(function(t) {
+        var el = document.getElementById('wa-bal-' + t);
+        if (el) el.innerHTML = '<span class="wa-skeleton" style="display:inline-block;width:80px;height:20px;border-radius:4px"></span>';
+        var usd = document.getElementById('wa-usd-' + t);
+        if (usd) usd.textContent = '\u2248 $--';
+        var ltx = document.getElementById('wa-lasttx-' + t);
+        if (ltx) ltx.textContent = '--';
+      });
+    },
+
+    _setBalance: function(tokenKey, amount, lastTxHash) {
+      var balEl = document.getElementById('wa-bal-' + tokenKey);
+      var usdEl = document.getElementById('wa-usd-' + tokenKey);
+      var ltxEl = document.getElementById('wa-lasttx-' + tokenKey);
+
+      if (!balEl) return;
+
+      // Format balance
+      var fmt;
+      if (amount === 0) {
+        fmt = '0';
+      } else if (amount >= 1e6) {
+        fmt = (amount / 1e6).toFixed(2) + 'M';
+      } else if (amount >= 1e3) {
+        fmt = (amount / 1e3).toFixed(2) + 'K';
+      } else if (amount < 0.00001) {
+        fmt = amount.toFixed(8);
+      } else {
+        fmt = amount.toFixed(6);
+      }
+
+      balEl.textContent = fmt + (tokenKey === 'btc' ? ' BTC' : '');
+
+      // USD value
+      if (usdEl) {
+        var price = tokenKey === 'btc' ? WA.BTC_PRICE : (WA.TOKENS[tokenKey] ? WA.TOKENS[tokenKey].price : 0);
+        var usdVal = amount * price;
+        if (usdVal > 0) {
+          usdEl.textContent = '\u2248 $' + (usdVal >= 1000 ? (usdVal/1000).toFixed(2)+'K' : usdVal.toFixed(2));
+        } else {
+          usdEl.textContent = '\u2248 $0.00';
+        }
+      }
+
+      // Last TX
+      if (ltxEl) {
+        if (lastTxHash) {
+          ltxEl.innerHTML = '<a href="' + WA.MEMPOOL_TX + lastTxHash + '" target="_blank" rel="noopener" style="color:rgba(247,147,26,0.6);text-decoration:none;font-family:DM Mono,monospace" title="' + lastTxHash + '">'
+            + lastTxHash.slice(0,8) + '...' + lastTxHash.slice(-6) + ' \u2197</a>';
+        } else {
+          ltxEl.textContent = 'No transactions found';
+        }
+      }
+
+      // Update topbar BTC display
+      if (tokenKey === 'btc') {
+        var topBalEl = document.getElementById('wallet-balance-display');
+        if (topBalEl) topBalEl.textContent = (amount > 0 ? amount.toFixed(6) : '0.000000') + ' BTC';
+      }
+    },
+
+    _setStatus: function(tokenKey, ok) {
+      var dot = document.getElementById('wa-status-' + tokenKey);
+      if (!dot) return;
+      dot.style.background   = ok ? '#00ff88' : 'rgba(255,68,102,0.6)';
+      dot.style.boxShadow    = ok ? '0 0 6px rgba(0,255,136,0.6)' : 'none';
+    },
+
+    _setRpcStatus: function(ok, text) {
+      var dot  = document.getElementById('wa-rpc-dot');
+      var span = document.getElementById('wa-rpc-status');
+      if (dot)  { dot.style.background = ok ? '#00ff88' : '#ff4466'; }
+      if (span) { span.textContent = text; span.style.color = ok ? '#00ff88' : '#ff6688'; }
+    },
+
+    _setMemStatus: function(ok, text) {
+      var dot  = document.getElementById('wa-mem-dot');
+      var span = document.getElementById('wa-mem-status');
+      if (dot)  { dot.style.background = ok ? '#00ff88' : '#ff4466'; }
+      if (span) { span.textContent = text; span.style.color = ok ? '#00ff88' : '#ff6688'; }
+    },
+
+    _setBlock: function(block) {
+      var el = document.getElementById('wa-block-num');
+      if (el) el.textContent = block.toLocaleString();
+    }
+  };
+
+  // ── Expose global fetch trigger (used by Refresh button) ──
+  function waFetchAll() { WA.fetchAll(); }
+  window.waFetchAll = waFetchAll;
+  window.WA = WA;
 
 
   // ================================================================
