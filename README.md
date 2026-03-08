@@ -1,106 +1,267 @@
-# OPiLL Protocol — Bitcoin DeFi Frontend
+OPiLL Protocol — Bitcoin DeFi Frontend
 
-Full-stack Bitcoin DeFi dashboard built on OP_NET ecosystem.
+A full-stack Bitcoin DeFi dashboard built on the OP_NET ecosystem, providing wallet connectivity, real-time token data, faucet distribution, and modular protocol interfaces including staking, vaults, lending, NFTs, DAO governance, and launchpad.
 
-## 🏗️ Project Structure
+Designed for fast deployment on modern edge platforms such as Vercel, Netlify, and Cloudflare Pages.
 
-```
+Overview
+
+OPiLL Protocol provides a modular frontend interface for interacting with Bitcoin-based DeFi infrastructure through OP_NET.
+
+Core capabilities include:
+
+Multi-wallet Bitcoin connection
+
+Real-time token pricing
+
+Faucet distribution system
+
+Modular DeFi dashboard
+
+Serverless API endpoints
+
+Edge deployment support
+
+Project Structure
 opill-protocol/
-├── index.html          ← Main app (all sections)
+│
+├── index.html
+│   Main application entry containing all UI sections
+│
 ├── css/
-│   └── style.css       ← All styles
+│   └── style.css
+│       Global styles and layout
+│
 ├── js/
-│   ├── wallet.js       ← Wallet connection (OP_WALLET, UniSat, Xverse, OKX)
-│   ├── opnet.js        ← OP_NET RPC integration
-│   ├── price.js        ← Real-time token prices (DexScreener + CoinGecko)
-│   ├── faucet.js       ← Faucet system with 24h rate limiting
-│   └── ui.js           ← UI controller, navigation, modal, toast
+│   ├── wallet.js
+│   │   Multi-wallet connection handler
+│   │   (OP_WALLET, UniSat, Xverse, OKX)
+│   │
+│   ├── opnet.js
+│   │   OP_NET RPC integration layer
+│   │
+│   ├── price.js
+│   │   Real-time token price service
+│   │   (DexScreener + CoinGecko)
+│   │
+│   ├── faucet.js
+│   │   Faucet system with 24-hour rate limiting
+│   │
+│   └── ui.js
+│       UI controller including navigation,
+│       modal management, and toast notifications
+│
 ├── api/
-│   ├── faucet.js       ← Vercel serverless faucet endpoint
-│   └── price.js        ← Vercel serverless price proxy endpoint
-├── vercel.json         ← Vercel deploy config
-├── netlify.toml        ← Netlify deploy config
+│   ├── faucet.js
+│   │   Vercel serverless faucet endpoint
+│   │
+│   └── price.js
+│       Serverless price proxy endpoint
+│
+├── vercel.json
+│   Vercel deployment configuration
+│
+├── netlify.toml
+│   Netlify deployment configuration
+│
 └── README.md
-```
+Features
+Wallet Integration
 
-## 🚀 Deploy
+Supports multiple Bitcoin ecosystem wallets:
 
-### Vercel (Recommended)
-```bash
-npm i -g vercel
+Wallet	Provider	Status
+OP_WALLET	window.opnet	Primary
+UniSat	window.unisat	Supported
+Xverse	window.XverseProviders	Supported
+OKX Wallet	window.okxwallet.bitcoin	Supported
+Core Capabilities
+
+Wallet Connection
+
+Connect / disconnect wallet
+
+Session persistence
+
+Automatic balance detection
+
+Balance Display
+
+Displays the user's real BTC balance after wallet connection.
+
+Real-Time Price Feeds
+
+BTC via CoinGecko
+
+OPN via DexScreener
+
+Automatic refresh every 20 seconds
+
+Token Faucet
+
+Rate-limited token claim
+
+24 hour cooldown per address
+
+Backend verification
+
+Protocol Dashboard
+
+The UI includes 16 protocol sections such as:
+
+Home
+
+Staking
+
+Vault
+
+Lending
+
+NFT
+
+DAO
+
+Launchpad
+
+Analytics
+
+Activity Feed
+
+Airdrop
+
+Treasury
+
+Governance
+
+Live Activity Feed
+
+Animated UI showing recent protocol activity.
+
+Countdown Timer
+
+Useful for:
+
+IDO events
+
+Token launches
+
+Airdrop campaigns
+
+Deployment
+Vercel (Recommended)
+
+Install Vercel CLI:
+
+npm install -g vercel
+
+Deploy:
+
 vercel deploy
-```
+Netlify
 
-### Netlify
-Drag & drop the `opill-protocol/` folder to [netlify.com/drop](https://app.netlify.com/drop)
+Upload the project folder directly:
 
-### Cloudflare Pages
-1. Upload folder via Cloudflare dashboard
-2. Set build command: (empty)
-3. Set publish directory: `.`
+opill-protocol/
 
-### Local Development
-```bash
-# Option 1: Python simple server
+or drag and drop it into:
+
+https://netlify.com/drop
+Cloudflare Pages
+
+Upload the project directory using the Cloudflare dashboard.
+
+Configuration:
+
+Build command: (empty)
+Publish directory: .
+Local Development
+Python Static Server
 python3 -m http.server 3000
-
-# Option 2: Node
+Node Static Server
 npx serve .
+VS Code Live Server
 
-# Option 3: VS Code Live Server extension
-```
+Use the Live Server extension to run the project locally.
 
-## ✅ Wallet Support
+Environment Variables
 
-| Wallet | Provider | Status |
-|--------|----------|--------|
-| OP_WALLET | `window.opnet` | ✅ Primary |
-| UniSat | `window.unisat` | ✅ Supported |
-| Xverse | `window.XverseProviders` | ✅ Supported |
-| OKX | `window.okxwallet.bitcoin` | ✅ Supported |
+Create a .env file in the project root.
 
-## 💡 Features
+Never commit this file to version control.
 
-- **Wallet Connection** — Connect/disconnect with session persistence
-- **Balance Display** — Real BTC balance from wallet after connect
-- **Real-Time Prices** — BTC via CoinGecko, OPN via DexScreener (updates every 20s)
-- **Faucet** — 24h rate-limited token claim with backend API
-- **Navigation** — 16 sections: Home, Staking, Vault, Lending, NFT, DAO, Launchpad, etc.
-- **Live Activity Feed** — Animated recent protocol activity
-- **Countdown Timer** — For IDO/airdrop events
-
-## ⚙️ Environment Variables (for Vercel)
-
-Create `.env` in project root (never commit this):
-```
 OPNET_RPC_URL=https://mainnet.opnet.org
 OPN_CONTRACT_ADDRESS=<your_contract_address>
 FAUCET_PRIVATE_KEY=<wallet_wif_key>
 NETWORK=mainnet
-```
+OP_NET SDK (Production Transactions)
 
-## 📦 OP_NET SDK (for production transactions)
+Install the official SDK packages:
 
-```bash
-npm install @btc-vision/transaction @btc-vision/bitcoin opnet
-```
+npm install @btc-vision/transaction
+npm install @btc-vision/bitcoin
+npm install opnet
 
-See `api/faucet.js` for commented-out production transaction code.
+Example implementation can be found in:
 
-## 🔧 Customization
+api/faucet.js
+Customization
 
-- **Token name/symbol**: Search for `OPN` in all files
-- **Contract address**: Update `OPN_CONTRACT_ADDRESS` in env + `api/faucet.js`
-- **Price token**: Update DexScreener query in `js/price.js` and `api/price.js`
-- **Faucet amount**: Change `FAUCET_AMOUNT` in `js/faucet.js` and `api/faucet.js`
-- **RPC endpoint**: Update `ENDPOINTS` in `js/opnet.js`
+Token Name / Symbol
 
-## 🛡️ Security Notes
+Search and replace:
 
-- Never put private keys in frontend JS
-- Use environment variables for all secrets
-- Rate limiting is in-memory (use Redis/Upstash KV for production scale)
-- Always simulate transactions before broadcasting
+OPN
 
----
-Built on Bitcoin Layer 1 · Powered by OP_NET · Trustless · Non-Custodial
+Across all project files.
+
+Contract Address
+
+Update:
+
+OPN_CONTRACT_ADDRESS
+
+Inside:
+
+.env
+api/faucet.js
+
+Token Price Source
+
+Modify DexScreener query in:
+
+js/price.js
+api/price.js
+
+Faucet Amount
+
+Adjust:
+
+FAUCET_AMOUNT
+
+Inside:
+
+js/faucet.js
+api/faucet.js
+
+RPC Endpoint
+
+Edit the RPC endpoints inside:
+
+js/opnet.js
+Security Notes
+
+Important security guidelines:
+
+Never expose private keys in frontend code
+
+Always store sensitive values in environment variables
+
+Faucet rate limiting currently uses in-memory storage
+
+For production scale use Redis or Upstash KV
+
+Always simulate transactions before broadcasting
+
+License
+
+MIT License
