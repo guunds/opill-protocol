@@ -642,7 +642,7 @@
     <!-- Right: wallet connect area -->
     <div class="topbar-right">
       <div id="connected-badge" class="connected-badge" style="display:none"><div class="dot"></div> Connected</div>
-      <div class="notif-btn">🔔<div class="notif-dot"></div></div>
+      <div class="notif-btn" id="notif-btn" onclick="toggleNotifPanel()" title="Notifications"><div id="notif-bell-icon">🔔</div><div class="notif-dot" id="notif-dot"></div></div>
       <div id="wallet-info-btn" class="wallet-btn" style="display:none;cursor:pointer;gap:8px" onclick="disconnectWallet()">
         <div class="wallet-icon" id="wallet-icon-el" style="display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:6px">◎</div>
         <div style="display:flex;flex-direction:column;gap:1px;align-items:flex-start">
@@ -1171,349 +1171,410 @@
         </div>
       </div><!-- /sec-vault -->
 
-<!-- ══════════════ LAUNCHPAD ══════════════ -->
+      <!-- ══════════════ LAUNCHPAD ══════════════ -->
       <div id="sec-launchpad" class="section">
         <div class="page-header">
-          <div class="page-title">Token Launchpad</div>
-          <div class="page-desc">Fair-launch Bitcoin-native token sales on OP_NET. Participate in IDOs with verified smart contracts.</div>
+          <div class="page-title">🚀 Token Launchpad</div>
+          <div class="page-desc">Fair-launch Bitcoin-native token IDOs on OP_NET. Participate with BTC — allocation guaranteed by smart contract.</div>
         </div>
 
         <div class="stats-row">
-          <div class="stat-card"><div class="stat-label">Total Raised</div><div class="stat-value">$12.4M</div><div class="stat-sub">Across 8 launches</div><div class="stat-icon">🚀</div></div>
+          <div class="stat-card"><div class="stat-label">Total Raised</div><div class="stat-value" id="lp-total-raised">$12.4M</div><div class="stat-sub">Across 8 launches</div><div class="stat-icon">🚀</div></div>
           <div class="stat-card"><div class="stat-label">Live Launches</div><div class="stat-value">2</div><div class="stat-sub">Ends soon</div><div class="stat-icon">⏳</div></div>
-          <div class="stat-card"><div class="stat-label">Avg. ATH Return</div><div class="stat-value">4.8x</div><div class="stat-sub">From IDO price</div><div class="stat-icon">📈</div></div>
-          <div class="stat-card"><div class="stat-label">Your Allocation</div><div class="stat-value">—</div><div class="stat-sub">Connect wallet</div><div class="stat-icon">🎫</div></div>
+          <div class="stat-card"><div class="stat-label">Avg. ATH Return</div><div class="stat-value">4.8×</div><div class="stat-sub">From IDO price</div><div class="stat-icon">📈</div></div>
+          <div class="stat-card"><div class="stat-label">Your Allocation</div><div class="stat-value" id="lp-my-alloc">—</div><div class="stat-sub" id="lp-my-alloc-sub">Connect wallet</div><div class="stat-icon">🎫</div></div>
         </div>
 
-        <!-- Live launch -->
-        <div class="launch-item" style="border-color:var(--border-glow);background:var(--orange-glow)">
-          <div class="launch-header">
-            <div class="launch-logo" style="background:var(--orange-dim)">🔥</div>
-            <div>
-              <div style="display:flex;align-items:center;gap:10px">
-                <div class="launch-name">StackFi Protocol</div>
-                <span class="badge badge-green">● LIVE</span>
-              </div>
-              <div class="launch-chain">Bitcoin L1 · OP_NET · ORC-20</div>
-            </div>
-            <div style="margin-left:auto;text-align:right">
-              <div style="font-size:11px;color:var(--text-muted)">Ends in</div>
-              <div class="countdown" style="margin-top:6px">
-                <div class="cd-unit"><span class="cd-num" id="cd-h">14</span><div class="cd-label">HRS</div></div>
-                <div class="cd-unit"><span class="cd-num" id="cd-m">32</span><div class="cd-label">MIN</div></div>
-                <div class="cd-unit"><span class="cd-num" id="cd-s">09</span><div class="cd-label">SEC</div></div>
-              </div>
-            </div>
-          </div>
-          <div class="launch-meta">
-            <div class="launch-meta-item"><div class="launch-meta-label">Total Raise</div><div class="launch-meta-value">50 BTC</div></div>
-            <div class="launch-meta-item"><div class="launch-meta-label">Price</div><div class="launch-meta-value">0.0001 BTC / STKF</div></div>
-            <div class="launch-meta-item"><div class="launch-meta-label">Your Max</div><div class="launch-meta-value">0.5 BTC</div></div>
-            <div class="launch-meta-item"><div class="launch-meta-label">Participants</div><div class="launch-meta-value">1,284</div></div>
-          </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:6px">
-              <span>Progress</span><span style="color:var(--orange);font-weight:600">84.2% Filled</span>
-            </div>
-            <div class="progress-bar" style="height:8px">
-              <div class="progress-fill" style="width:84.2%"></div>
-            </div>
-          </div>
-          <div style="margin-top:16px;display:flex;gap:10px">
+        <!-- IDO 1: StackFi — LIVE -->
+        <div style="border:2px solid rgba(247,147,26,0.5);border-radius:16px;padding:22px;margin-bottom:16px;background:rgba(247,147,26,0.04);position:relative;overflow:hidden">
+          <div style="position:absolute;top:0;right:0;background:linear-gradient(135deg,rgba(247,147,26,0.3),transparent);width:200px;height:100%;pointer-events:none"></div>
+          <!-- Header -->
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap">
+            <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#f7931a,#e8820a);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">🔥</div>
             <div style="flex:1">
-              <div class="input-wrap">
-                <input class="input-field" type="number" placeholder="Amount in BTC">
-                <div class="input-suffix">MAX</div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <span style="font-family:Syne,sans-serif;font-weight:800;font-size:20px">StackFi Protocol</span>
+                <span style="background:rgba(0,255,136,0.15);color:var(--green);padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;border:1px solid rgba(0,255,136,0.3);animation:pulse 1.5s infinite">● LIVE</span>
               </div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Bitcoin L1 · OP_NET · ORC-20 · Audited by Certik</div>
             </div>
-            <button class="btn btn-primary" style="white-space:nowrap">🚀 Participate</button>
-          </div>
-        </div>
-
-        <!-- Upcoming -->
-        <div class="launch-item">
-          <div class="launch-header">
-            <div class="launch-logo" style="background:var(--cyan-dim)">💎</div>
-            <div>
-              <div style="display:flex;align-items:center;gap:10px">
-                <div class="launch-name">NakamotoSwap</div>
-                <span class="badge badge-cyan">UPCOMING</span>
-              </div>
-              <div class="launch-chain">Bitcoin L1 · OP_NET · Native Token</div>
-            </div>
-            <div style="margin-left:auto"><button class="btn btn-secondary" style="font-size:12px;padding:8px 16px">🔔 Notify Me</button></div>
-          </div>
-          <div class="launch-meta">
-            <div class="launch-meta-item"><div class="launch-meta-label">Total Raise</div><div class="launch-meta-value">120 BTC</div></div>
-            <div class="launch-meta-item"><div class="launch-meta-label">Start Date</div><div class="launch-meta-value">Mar 14, 2026</div></div>
-            <div class="launch-meta-item"><div class="launch-meta-label">Whitelist</div><div class="launch-meta-value">Open</div></div>
-            <div class="launch-meta-item"><div class="launch-meta-label">Type</div><div class="launch-meta-value">Fair Launch</div></div>
-          </div>
-          <button class="btn btn-outline" style="font-size:12px;padding:8px 20px">Apply for Whitelist</button>
-        </div>
-      </div>
-
-      <!-- ══════════════ AIRDROP POINTS ══════════════ -->
-      <div id="sec-airdrop-points" class="section">
-        <div class="page-header">
-          <div class="page-title">Airdrop Points</div>
-          <div class="page-desc">Earn points by completing protocol tasks. Points determine your airdrop allocation in Season 1.</div>
-        </div>
-
-        <div class="stats-row">
-          <div class="stat-card"><div class="stat-label">Your Points</div><div class="stat-value">0 PTS</div><div class="stat-sub">Connect wallet to earn</div><div class="stat-icon">⭐</div></div>
-          <div class="stat-card"><div class="stat-label">Your Rank</div><div class="stat-value">—</div><div class="stat-sub">Top 10% = 2x multiplier</div><div class="stat-icon">🏆</div></div>
-          <div class="stat-card"><div class="stat-label">Season Ends</div><div class="stat-value">62 Days</div><div class="stat-sub">Snapshot: May 1, 2026</div><div class="stat-icon">⏳</div></div>
-          <div class="stat-card"><div class="stat-label">Total Participants</div><div class="stat-value">48,291</div><div class="stat-sub">+821 today</div><div class="stat-icon">👥</div></div>
-        </div>
-
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">Tasks & Missions</div>
-              <span class="badge badge-orange">Season 1</span>
-            </div>
-            <div class="point-task">
-              <div class="task-check done">✓</div>
-              <div class="task-info">
-                <div class="task-name">Connect OP_WALLET</div>
-                <div class="task-desc">Link your Bitcoin wallet to OPNet</div>
-              </div>
-              <div class="task-pts">+50 PTS</div>
-            </div>
-            <div class="point-task">
-              <div class="task-check pending">○</div>
-              <div class="task-info">
-                <div class="task-name">Stake OPN Tokens</div>
-                <div class="task-desc">Stake any amount for at least 7 days</div>
-              </div>
-              <div class="task-pts">+200 PTS</div>
-            </div>
-            <div class="point-task">
-              <div class="task-check pending">○</div>
-              <div class="task-info">
-                <div class="task-name">Deposit to Vault</div>
-                <div class="task-desc">Make first vault deposit (any amount)</div>
-              </div>
-              <div class="task-pts">+150 PTS</div>
-            </div>
-            <div class="point-task">
-              <div class="task-check pending">○</div>
-              <div class="task-info">
-                <div class="task-name">Refer 3 Friends</div>
-                <div class="task-desc">Invite friends using your referral link</div>
-              </div>
-              <div class="task-pts">+500 PTS</div>
-            </div>
-            <div class="point-task">
-              <div class="task-check pending">○</div>
-              <div class="task-info">
-                <div class="task-name">Participate in IDO</div>
-                <div class="task-desc">Join any launchpad sale</div>
-              </div>
-              <div class="task-pts">+300 PTS</div>
-            </div>
-            <div class="point-task">
-              <div class="task-check pending">○</div>
-              <div class="task-info">
-                <div class="task-name">Use Lending Protocol</div>
-                <div class="task-desc">Borrow or supply assets</div>
-              </div>
-              <div class="task-pts">+250 PTS</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">Multipliers</div>
-            </div>
-            <div style="space-y:10px">
-              <div class="vault-item" style="margin-bottom:10px">
-                <div class="vault-icon" style="background:var(--orange-dim)">🔥</div>
-                <div class="vault-info">
-                  <div class="vault-name">365-Day Staker</div>
-                  <div class="vault-strategy">Lock OPN for 1 year</div>
-                </div>
-                <span class="badge badge-orange">3× PTS</span>
-              </div>
-              <div class="vault-item" style="margin-bottom:10px">
-                <div class="vault-icon" style="background:var(--green-dim)">💎</div>
-                <div class="vault-info">
-                  <div class="vault-name">OG Participant</div>
-                  <div class="vault-strategy">Joined before March 2026</div>
-                </div>
-                <span class="badge badge-green">2× PTS</span>
-              </div>
-              <div class="vault-item" style="margin-bottom:10px">
-                <div class="vault-icon" style="background:var(--cyan-dim)">🤝</div>
-                <div class="vault-info">
-                  <div class="vault-name">Active Referrer</div>
-                  <div class="vault-strategy">10+ successful referrals</div>
-                </div>
-                <span class="badge badge-cyan">1.5× PTS</span>
-              </div>
-            </div>
-            <hr class="divider">
-            <div class="card-title" style="font-size:13px;margin-bottom:14px">Your Referral Link</div>
-            <div class="input-wrap">
-              <input class="input-field" type="text" value="https://opnet.finance/ref/—" readonly>
-              <div class="input-suffix">COPY</div>
-            </div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:8px">Connect wallet to generate referral link</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ══════════════ AIRDROP CLAIM ══════════════ -->
-      <div id="sec-airdrop-claim" class="section">
-        <div class="page-header">
-          <div class="page-title">Airdrop Claim</div>
-          <div class="page-desc">Claim your OPN airdrop allocation. Verify eligibility and claim directly to your Bitcoin wallet.</div>
-        </div>
-
-        <div class="card" style="max-width:580px;margin:0 auto">
-          <div style="text-align:center;padding:32px 0 24px">
-            <div style="font-size:56px;margin-bottom:16px;animation:driftOrb1 3s ease-in-out infinite alternate">🎁</div>
-            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;margin-bottom:8px">OPN Airdrop — Season 1</div>
-            <div style="color:var(--text-muted);font-size:12px">Total distributed: 10,000,000 OPN · Snapshot: Jan 15, 2026</div>
-          </div>
-
-          <hr class="divider">
-
-          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-              <div style="font-size:12px;color:var(--text-muted)">Claim Status</div>
-              <span class="badge badge-orange">Not Connected</span>
-            </div>
-            <div style="text-align:center;padding:20px 0">
-              <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:42px;color:var(--orange)">—</div>
-              <div style="font-size:13px;color:var(--text-muted);margin-top:4px">OPN Allocated</div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
-              <div style="text-align:center;padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
-                <div style="font-size:10px;color:var(--text-muted)">Points Earned</div>
-                <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;margin-top:4px">—</div>
-              </div>
-              <div style="text-align:center;padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
-                <div style="font-size:10px;color:var(--text-muted)">Multiplier</div>
-                <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:18px;margin-top:4px;color:var(--orange)">—</div>
+            <div style="text-align:right">
+              <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Ends in</div>
+              <div style="display:flex;gap:6px">
+                <div style="text-align:center;background:rgba(0,0,0,0.3);border-radius:6px;padding:6px 10px"><div style="font-family:Syne,sans-serif;font-weight:800;font-size:20px;color:var(--orange)" id="lp1-h">14</div><div style="font-size:9px;color:var(--text-muted)">HRS</div></div>
+                <div style="text-align:center;background:rgba(0,0,0,0.3);border-radius:6px;padding:6px 10px"><div style="font-family:Syne,sans-serif;font-weight:800;font-size:20px;color:var(--orange)" id="lp1-m">32</div><div style="font-size:9px;color:var(--text-muted)">MIN</div></div>
+                <div style="text-align:center;background:rgba(0,0,0,0.3);border-radius:6px;padding:6px 10px"><div style="font-family:Syne,sans-serif;font-weight:800;font-size:20px;color:var(--orange)" id="lp1-s">09</div><div style="font-size:9px;color:var(--text-muted)">SEC</div></div>
               </div>
             </div>
           </div>
 
+          <!-- Meta grid -->
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px">
+            <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em">Hard Cap</div><div style="font-weight:700;margin-top:4px">50 BTC</div></div>
+            <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em">IDO Price</div><div style="font-weight:700;margin-top:4px">$0.042</div></div>
+            <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em">Total Supply</div><div style="font-weight:700;margin-top:4px">100M STK</div></div>
+            <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em">Min Buy</div><div style="font-weight:700;margin-top:4px">0.001 BTC</div></div>
+            <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em">Max Buy</div><div style="font-weight:700;margin-top:4px">1 BTC</div></div>
+          </div>
+
+          <!-- Progress -->
           <div style="margin-bottom:16px">
-            <div class="input-label">Bitcoin Address (for verification)</div>
-            <div class="input-wrap">
-              <input class="input-field" type="text" placeholder="bc1q... or tb1q...">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+              <span style="color:var(--text-muted)">Raised</span>
+              <span><span id="lp1-raised" style="color:var(--orange);font-weight:700">38.72 BTC</span> / 50 BTC <span style="color:var(--text-muted)">(77.4%)</span></span>
+            </div>
+            <div style="height:10px;background:rgba(255,255,255,0.08);border-radius:5px;overflow:hidden">
+              <div id="lp1-bar" style="height:100%;width:77.4%;background:linear-gradient(90deg,var(--orange),rgba(247,180,26,0.8));border-radius:5px;transition:width 1s"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:5px">
+              <span id="lp1-participants">1,284 participants</span>
+              <span id="lp1-my-contrib" style="color:var(--cyan)"></span>
             </div>
           </div>
 
-          <button class="btn btn-primary btn-full" style="margin-bottom:12px">⚡ Connect OP_WALLET to Check</button>
-          <button class="btn btn-secondary btn-full">🔍 Check Address Manually</button>
-
-          <div style="margin-top:20px;padding:14px;background:var(--orange-glow);border:1px solid var(--border-glow);border-radius:var(--radius);font-size:11px;color:var(--text-muted);line-height:1.6">
-            ⚠️ Claims open until June 30, 2026. Unclaimed tokens will be redistributed to the protocol treasury. Claim requires Bitcoin testnet gas fee (~800 sats).
+          <!-- Participate form -->
+          <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+            <div style="flex:1;min-width:160px">
+              <div style="font-size:10px;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.06em">Your Contribution (BTC)</div>
+              <div style="display:flex;gap:6px">
+                <div class="input-wrap" style="flex:1">
+                  <input class="input-field" id="lp1-amount" type="number" placeholder="0.001" min="0.001" max="1" step="0.001" oninput="lpCalc(1,this.value)" style="padding:10px 12px">
+                  <div class="input-suffix" style="font-size:10px">BTC</div>
+                </div>
+              </div>
+              <div id="lp1-tokens" style="font-size:10px;color:var(--cyan);margin-top:4px">≈ 0 STK tokens</div>
+            </div>
+            <div id="lp1-status" style="display:none;padding:8px 12px;border-radius:8px;font-size:11px;flex:1"></div>
+            <button class="btn btn-primary" id="lp1-btn" onclick="lpParticipate(1,'StackFi Protocol','STK','lp1')" style="padding:11px 20px;font-size:13px;white-space:nowrap">⚡ Participate</button>
           </div>
         </div>
-      </div>
+
+        <!-- IDO 2: BitOracle — LIVE -->
+        <div style="border:2px solid rgba(0,229,255,0.4);border-radius:16px;padding:22px;margin-bottom:16px;background:rgba(0,229,255,0.03);position:relative;overflow:hidden">
+          <div style="position:absolute;top:0;right:0;background:linear-gradient(135deg,rgba(0,229,255,0.12),transparent);width:200px;height:100%;pointer-events:none"></div>
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap">
+            <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#00e5ff,#0096aa);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">🔮</div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <span style="font-family:Syne,sans-serif;font-weight:800;font-size:20px">BitOracle Network</span>
+                <span style="background:rgba(0,255,136,0.15);color:var(--green);padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;border:1px solid rgba(0,255,136,0.3);animation:pulse 1.5s infinite">● LIVE</span>
+              </div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Bitcoin L1 · OP_NET · Runes Protocol · Oracle Network</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">Ends in</div>
+              <div style="display:flex;gap:6px">
+                <div style="text-align:center;background:rgba(0,0,0,0.3);border-radius:6px;padding:6px 10px"><div style="font-family:Syne,sans-serif;font-weight:800;font-size:20px;color:var(--cyan)" id="lp2-h">2</div><div style="font-size:9px;color:var(--text-muted)">DAYS</div></div>
+                <div style="text-align:center;background:rgba(0,0,0,0.3);border-radius:6px;padding:6px 10px"><div style="font-family:Syne,sans-serif;font-weight:800;font-size:20px;color:var(--cyan)" id="lp2-m">08</div><div style="font-size:9px;color:var(--text-muted)">HRS</div></div>
+                <div style="text-align:center;background:rgba(0,0,0,0.3);border-radius:6px;padding:6px 10px"><div style="font-family:Syne,sans-serif;font-weight:800;font-size:20px;color:var(--cyan)" id="lp2-s">44</div><div style="font-size:9px;color:var(--text-muted)">MIN</div></div>
+              </div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px">
+            <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-muted)">Hard Cap</div><div style="font-weight:700;margin-top:4px">30 BTC</div></div>
+            <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-muted)">IDO Price</div><div style="font-weight:700;margin-top:4px">$0.018</div></div>
+            <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-muted)">Total Supply</div><div style="font-weight:700;margin-top:4px">500M BOR</div></div>
+            <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-muted)">Min Buy</div><div style="font-weight:700;margin-top:4px">0.001 BTC</div></div>
+            <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--text-muted)">Max Buy</div><div style="font-weight:700;margin-top:4px">2 BTC</div></div>
+          </div>
+          <div style="margin-bottom:16px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+              <span style="color:var(--text-muted)">Raised</span>
+              <span><span id="lp2-raised" style="color:var(--cyan);font-weight:700">11.40 BTC</span> / 30 BTC <span style="color:var(--text-muted)">(38.0%)</span></span>
+            </div>
+            <div style="height:10px;background:rgba(255,255,255,0.08);border-radius:5px;overflow:hidden">
+              <div id="lp2-bar" style="height:100%;width:38%;background:linear-gradient(90deg,var(--cyan),rgba(0,200,255,0.8));border-radius:5px;transition:width 1s"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:5px">
+              <span id="lp2-participants">634 participants</span>
+              <span id="lp2-my-contrib" style="color:var(--cyan)"></span>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+            <div style="flex:1;min-width:160px">
+              <div style="font-size:10px;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.06em">Your Contribution (BTC)</div>
+              <div class="input-wrap">
+                <input class="input-field" id="lp2-amount" type="number" placeholder="0.001" min="0.001" max="2" step="0.001" oninput="lpCalc(2,this.value)" style="padding:10px 12px">
+                <div class="input-suffix" style="font-size:10px">BTC</div>
+              </div>
+              <div id="lp2-tokens" style="font-size:10px;color:var(--cyan);margin-top:4px">≈ 0 BOR tokens</div>
+            </div>
+            <div id="lp2-status" style="display:none;padding:8px 12px;border-radius:8px;font-size:11px;flex:1"></div>
+            <button class="btn btn-primary" id="lp2-btn" onclick="lpParticipate(2,'BitOracle Network','BOR','lp2')" style="padding:11px 20px;font-size:13px;background:linear-gradient(135deg,var(--cyan),#0096aa);border-color:var(--cyan);white-space:nowrap">⚡ Participate</button>
+          </div>
+        </div>
+
+        <!-- My Allocations -->
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">🎫 My Allocations</div>
+          <div id="lp-alloc-empty" style="text-align:center;padding:24px;color:var(--text-muted);font-size:12px">Participate in an IDO above to see your allocation here</div>
+          <div id="lp-alloc-list" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+      </div><!-- /sec-launchpad -->
+
 
       <!-- ══════════════ MULTISIG ══════════════ -->
       <div id="sec-multisig" class="section">
         <div class="page-header">
-          <div class="page-title">Multisig Wallet</div>
-          <div class="page-desc">Create and manage M-of-N Bitcoin multisig vaults for teams and DAOs. Secured by OP_NET smart contracts.</div>
+          <div class="page-title">🔐 Multisig Wallet</div>
+          <div class="page-desc">Create M-of-N Bitcoin multisig vaults for teams and DAOs. Every tx requires M signers — secured by OP_NET.</div>
         </div>
 
-        <div class="grid-2">
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">Your Vaults</div><div class="stat-value" id="ms-my-vaults">0</div><div class="stat-sub" id="ms-my-vaults-sub">Connect wallet</div><div class="stat-icon">🔐</div></div>
+          <div class="stat-card"><div class="stat-label">Pending TXs</div><div class="stat-value" id="ms-pending-count">0</div><div class="stat-sub">Awaiting signatures</div><div class="stat-icon">✍️</div></div>
+          <div class="stat-card"><div class="stat-label">Total Secured</div><div class="stat-value" id="ms-total-secured">$0</div><div class="stat-sub">Across all vaults</div><div class="stat-icon">💼</div></div>
+          <div class="stat-card"><div class="stat-label">Signers Online</div><div class="stat-value" id="ms-signers-online">—</div><div class="stat-sub">Real-time</div><div class="stat-icon">👥</div></div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:20px">
+          <!-- Create Vault -->
           <div class="card">
             <div class="card-header">
               <div class="card-title">Create Multisig Vault</div>
             </div>
             <div class="input-group">
               <div class="input-label">Vault Name</div>
-              <input class="input-field" type="text" placeholder="e.g. DAO Treasury">
+              <input class="input-field" id="ms-vault-name" type="text" placeholder="e.g. DAO Treasury, Team Wallet">
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-              <div class="input-group" style="margin-bottom:0">
+              <div>
                 <div class="input-label">Required Signers (M)</div>
-                <select class="input-field" style="cursor:pointer">
-                  <option>2 of N</option>
-                  <option>3 of N</option>
-                  <option>4 of N</option>
-                  <option>5 of N</option>
+                <select class="input-field" id="ms-required" style="cursor:pointer" onchange="msUpdateConfig()">
+                  <option value="2">2 of N</option>
+                  <option value="3">3 of N</option>
+                  <option value="4">4 of N</option>
                 </select>
               </div>
-              <div class="input-group" style="margin-bottom:0">
+              <div>
                 <div class="input-label">Total Signers (N)</div>
-                <select class="input-field" style="cursor:pointer">
-                  <option>3</option>
-                  <option>4</option>
-                  <option>5</option>
-                  <option>7</option>
+                <select class="input-field" id="ms-total" style="cursor:pointer" onchange="msUpdateConfig()">
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="7">7</option>
                 </select>
               </div>
             </div>
-            <div class="input-label">Signer Addresses</div>
-            <div class="signer-row">
-              <div class="signer-status signed"></div>
-              <div class="signer-addr">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</div>
-              <span class="badge badge-green">Owner</span>
+            <!-- Config summary -->
+            <div id="ms-config-summary" style="background:rgba(247,147,26,0.08);border:1px solid rgba(247,147,26,0.2);border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:16px;text-align:center;color:var(--orange)">
+              Requires <strong>2 of 3</strong> signatures to approve any transaction
             </div>
-            <div class="signer-row">
-              <input class="input-field" type="text" placeholder="Add signer address..." style="border:none;background:transparent;padding:0;font-size:12px">
-              <button class="btn btn-outline" style="padding:6px 12px;font-size:11px">+ Add</button>
+            <div class="input-label" style="margin-bottom:8px">Signer Addresses</div>
+            <!-- Signer 1 (owner = connected wallet) -->
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:8px;margin-bottom:8px;font-size:11px">
+              <span style="color:var(--green);font-size:16px">✓</span>
+              <span style="font-family:monospace;flex:1;color:var(--text-muted)" id="ms-owner-addr">tb1q... (your wallet)</span>
+              <span style="background:rgba(0,255,136,0.15);color:var(--green);padding:2px 8px;border-radius:4px;font-size:10px">Owner</span>
             </div>
-            <button class="btn btn-primary btn-full" style="margin-top:16px">🔐 Deploy Vault Contract</button>
+            <!-- Dynamic signer inputs -->
+            <div id="ms-signer-inputs">
+              <div style="display:flex;gap:8px;margin-bottom:8px">
+                <input class="input-field" type="text" placeholder="Signer 2: tb1q... or bc1q..." style="flex:1;font-size:11px" id="ms-s2">
+              </div>
+              <div style="display:flex;gap:8px;margin-bottom:8px">
+                <input class="input-field" type="text" placeholder="Signer 3: tb1q... or bc1q..." style="flex:1;font-size:11px" id="ms-s3">
+              </div>
+            </div>
+            <div id="ms-create-status" style="display:none;padding:10px;border-radius:8px;font-size:12px;margin-bottom:12px"></div>
+            <button class="btn btn-primary btn-full" id="ms-create-btn" onclick="msCreateVault()">🔐 Deploy Vault Contract</button>
           </div>
 
+          <!-- Pending Transactions -->
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px">⏳ Pending Transactions</div>
+            <div id="ms-pending-empty" style="text-align:center;padding:24px;color:var(--text-muted);font-size:12px">
+              <div style="font-size:36px;margin-bottom:8px">✍️</div>
+              No pending transactions.<br>Create a vault and propose a transaction.
+            </div>
+            <div id="ms-pending-list" style="display:flex;flex-direction:column;gap:10px"></div>
+          </div>
+        </div>
+
+        <!-- My Vaults -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🏛️ My Vaults</div>
+            <button class="btn btn-outline" style="font-size:12px;padding:7px 14px" onclick="msProposeTx()" id="ms-propose-btn" disabled>+ Propose Transaction</button>
+          </div>
+          <div id="ms-vaults-empty" style="text-align:center;padding:32px;color:var(--text-muted);font-size:12px">
+            <div style="font-size:48px;margin-bottom:12px">🔐</div>
+            No vaults yet. Create one above to secure your Bitcoin with multisig.
+          </div>
+          <div id="ms-vaults-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px"></div>
+        </div>
+
+        <!-- Propose TX Modal -->
+        <div id="ms-propose-modal" style="display:none;position:fixed;inset:0;z-index:8888;background:rgba(0,0,0,0.78);backdrop-filter:blur(6px);align-items:center;justify-content:center">
+          <div style="background:#0a1020;border:1px solid rgba(247,147,26,0.35);border-radius:18px;padding:26px;width:440px;max-width:95vw;position:relative">
+            <button onclick="document.getElementById('ms-propose-modal').style.display='none'" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#888;font-size:20px;cursor:pointer">×</button>
+            <div style="font-family:Syne,sans-serif;font-weight:800;font-size:17px;margin-bottom:16px">Propose New Transaction</div>
+            <div class="input-group">
+              <div class="input-label">Recipient Address</div>
+              <input class="input-field" id="ms-tx-to" placeholder="tb1q... or bc1q...">
+            </div>
+            <div class="input-group">
+              <div class="input-group" style="margin-bottom:0">
+                <div class="input-label">Amount (BTC)</div>
+                <div class="input-wrap">
+                  <input class="input-field" id="ms-tx-amount" type="number" placeholder="0.00100" step="0.00001">
+                  <div class="input-suffix">BTC</div>
+                </div>
+              </div>
+            </div>
+            <div class="input-group">
+              <div class="input-label">Note (optional)</div>
+              <input class="input-field" id="ms-tx-note" placeholder="e.g. Monthly team salary">
+            </div>
+            <div id="ms-propose-status" style="display:none;padding:10px;border-radius:8px;font-size:12px;margin-bottom:12px"></div>
+            <button class="btn btn-primary btn-full" id="ms-propose-btn2" onclick="msSubmitProposeTx()">✍️ Sign & Propose</button>
+          </div>
+        </div>
+      </div><!-- /sec-multisig -->
+
+
+      <!-- ══════════════ AIRDROP POINTS ══════════════ -->
+      <div id="sec-airdrop-points" class="section">
+        <div class="page-header">
+          <div class="page-title">⭐ Airdrop Points</div>
+          <div class="page-desc">Complete tasks to earn points. Points = your OPN airdrop share in Season 1. Every action counts.</div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-card" style="border-color:rgba(247,147,26,0.3)"><div class="stat-label">Your Points</div><div class="stat-value" id="ap-my-pts" style="color:var(--orange)">0</div><div class="stat-sub" id="ap-my-pts-sub">Complete tasks below</div><div class="stat-icon">⭐</div></div>
+          <div class="stat-card"><div class="stat-label">Your Rank</div><div class="stat-value" id="ap-my-rank">—</div><div class="stat-sub">Top 10% = 2× multiplier</div><div class="stat-icon">🏆</div></div>
+          <div class="stat-card"><div class="stat-label">Multiplier</div><div class="stat-value" id="ap-multiplier" style="color:var(--green)">1.0×</div><div class="stat-sub" id="ap-multiplier-sub">Earn more for top rank</div><div class="stat-icon">⚡</div></div>
+          <div class="stat-card"><div class="stat-label">Est. OPN Airdrop</div><div class="stat-value" id="ap-est-airdrop" style="color:var(--cyan)">0 OPN</div><div class="stat-sub">Based on current points</div><div class="stat-icon">🎁</div></div>
+        </div>
+
+        <!-- Progress bar overall -->
+        <div class="card" style="margin-bottom:20px;background:linear-gradient(135deg,rgba(247,147,26,0.08),rgba(247,147,26,0.02))">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-family:Syne,sans-serif;font-weight:700">Season 1 Progress</div>
+            <div style="font-size:12px;color:var(--text-muted)">Snapshot: <span style="color:var(--orange)">Jan 15, 2027</span></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:6px">
+            <span>Tasks completed: <span id="ap-tasks-done" style="color:var(--green)">0</span> / <span id="ap-tasks-total">12</span></span>
+            <span id="ap-pts-display" style="color:var(--orange);font-weight:700">0 pts</span>
+          </div>
+          <div style="height:10px;background:rgba(255,255,255,0.06);border-radius:5px;overflow:hidden">
+            <div id="ap-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--orange),rgba(247,200,26,0.8));border-radius:5px;transition:width 0.6s"></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- Tasks list -->
           <div class="card">
             <div class="card-header">
-              <div class="card-title">Pending Transactions</div>
-              <span class="badge badge-orange">2 Pending</span>
+              <div class="card-title">🎯 Tasks & Missions</div>
+              <span style="background:rgba(247,147,26,0.15);color:var(--orange);padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;border:1px solid rgba(247,147,26,0.3)">Season 1</span>
             </div>
-            <div style="background:var(--surface2);border:1px solid var(--border-glow);border-radius:var(--radius);padding:16px;margin-bottom:12px">
-              <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-                <div>
-                  <div style="font-size:13px;font-weight:600">Send 2.5 BTC</div>
-                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px">To: bc1qx9...f2k3</div>
-                </div>
-                <span class="badge badge-orange">1/3 Signed</span>
+            <!-- Tasks rendered by JS -->
+            <div id="ap-tasks-list"></div>
+          </div>
+
+          <!-- Points breakdown + leaderboard -->
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <!-- My stats -->
+            <div class="card" style="background:linear-gradient(135deg,rgba(247,147,26,0.07),rgba(0,229,255,0.04))">
+              <div class="card-title" style="margin-bottom:14px">📊 My Points Breakdown</div>
+              <div id="ap-breakdown" style="display:flex;flex-direction:column;gap:6px">
+                <div style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px">Complete tasks to see breakdown</div>
               </div>
-              <div style="margin-bottom:10px">
-                <div class="signer-row" style="margin-bottom:6px">
-                  <div class="signer-status signed"></div>
-                  <div class="signer-addr">bc1qxy2...x0wlh</div>
-                  <span style="font-size:10px;color:var(--green)">✓ Signed</span>
+              <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+                <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700">
+                  <span>Total</span>
+                  <span style="color:var(--orange)" id="ap-total-display">0 pts</span>
                 </div>
-                <div class="signer-row" style="margin-bottom:6px">
-                  <div class="signer-status pending"></div>
-                  <div class="signer-addr">bc1qpwd...8m2n</div>
-                  <span style="font-size:10px;color:var(--text-muted)">Pending</span>
-                </div>
-                <div class="signer-row">
-                  <div class="signer-status pending"></div>
-                  <div class="signer-addr">bc1qrst...4p9z</div>
-                  <span style="font-size:10px;color:var(--text-muted)">Pending</span>
-                </div>
-              </div>
-              <div style="display:flex;gap:8px">
-                <button class="btn btn-primary" style="flex:1;padding:9px;font-size:12px">✓ Sign</button>
-                <button class="btn btn-danger" style="flex:1;padding:9px;font-size:12px">✕ Reject</button>
               </div>
             </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px">
-              <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-                <div>
-                  <div style="font-size:13px;font-weight:600">Change Signer</div>
-                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Remove bc1q...old</div>
+
+            <!-- Multiplier tiers -->
+            <div class="card">
+              <div class="card-title" style="margin-bottom:12px">⚡ Multiplier Tiers</div>
+              <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);border-radius:7px" id="mult-tier-3">
+                  <span>🥇 Top 5% wallets</span><span style="color:gold;font-weight:700">3.0× multiplier</span>
                 </div>
-                <span class="badge badge-cyan">2/3 Signed</span>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(247,147,26,0.08);border:1px solid rgba(247,147,26,0.25);border-radius:7px" id="mult-tier-2">
+                  <span>🥈 Top 10% wallets</span><span style="color:var(--orange);font-weight:700">2.0× multiplier</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);border-radius:7px" id="mult-tier-1">
+                  <span>🥉 Top 25% wallets</span><span style="color:var(--cyan);font-weight:700">1.5× multiplier</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:7px">
+                  <span>Everyone else</span><span style="color:var(--text-muted);font-weight:700">1.0× multiplier</span>
+                </div>
               </div>
-              <button class="btn btn-primary btn-full" style="padding:9px;font-size:12px">✓ Sign & Execute</button>
+            </div>
+
+            <!-- Referral -->
+            <div class="card" style="border-color:rgba(0,255,136,0.2)">
+              <div class="card-title" style="margin-bottom:10px">👥 Referral Bonus</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Share your link and earn <strong style="color:var(--green)">+200 pts</strong> per referred wallet that stakes.</div>
+              <div class="input-wrap" style="margin-bottom:8px">
+                <input class="input-field" id="ap-ref-link" readonly placeholder="Connect wallet to get link" style="font-size:11px;padding:8px 12px">
+                <button onclick="apCopyRef()" style="background:rgba(0,255,136,0.15);border:1px solid rgba(0,255,136,0.3);border-radius:0 8px 8px 0;color:var(--green);padding:8px 12px;font-size:11px;cursor:pointer;white-space:nowrap">Copy</button>
+              </div>
+              <button class="btn btn-secondary btn-full" style="font-size:12px;padding:9px" onclick="apInviteFriend()">📨 Invite Friend (+200 pts demo)</button>
             </div>
           </div>
         </div>
-      </div>
+      </div><!-- /sec-airdrop-points -->
+
+
+      <!-- ══════════════ AIRDROP CLAIM ══════════════ -->
+      <div id="sec-airdrop-claim" class="section">
+        <div class="page-header">
+          <div class="page-title">🎁 OPN Airdrop — Season 1</div>
+          <div class="page-desc">Total distributed: 10,000,000 OPN · Snapshot: Jan 15, 2027</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;min-height:60vh">
+          <div class="card" style="max-width:560px;width:100%;text-align:center;padding:52px 40px;background:linear-gradient(135deg,rgba(247,147,26,0.06),rgba(0,229,255,0.04));border-color:rgba(247,147,26,0.3)">
+            <!-- Animated logo -->
+            <div style="position:relative;display:inline-block;margin-bottom:24px">
+              <div style="font-size:80px;animation:driftOrb1 3s ease-in-out infinite alternate">🎁</div>
+              <div style="position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(247,147,26,0.15),transparent 70%);animation:pulse 2s ease-in-out infinite"></div>
+            </div>
+            <!-- Coming Soon badge -->
+            <div style="display:inline-block;background:rgba(247,147,26,0.15);border:1px solid rgba(247,147,26,0.4);border-radius:20px;padding:6px 18px;font-size:12px;font-weight:700;color:var(--orange);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:20px">🔒 Coming Soon</div>
+            <div style="font-family:Syne,sans-serif;font-weight:800;font-size:26px;margin-bottom:8px">OPN Airdrop — Season 1</div>
+            <div style="color:var(--text-muted);font-size:13px;margin-bottom:28px;line-height:1.7">
+              Total distributed: <span style="color:var(--orange);font-weight:700">10,000,000 OPN</span><br>
+              Snapshot: <span style="color:var(--cyan);font-weight:700">Jan 15, 2027</span>
+            </div>
+            <!-- Stats boxes -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px">
+              <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px">
+                <div style="font-family:Syne,sans-serif;font-weight:800;font-size:18px;color:var(--orange)">10M</div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:3px">OPN Pool</div>
+              </div>
+              <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px">
+                <div style="font-family:Syne,sans-serif;font-weight:800;font-size:18px;color:var(--cyan)" id="ac-countdown-days">—</div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:3px">Days to Snapshot</div>
+              </div>
+              <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px">
+                <div style="font-family:Syne,sans-serif;font-weight:800;font-size:18px;color:var(--green)">48K+</div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:3px">Participants</div>
+              </div>
+            </div>
+            <!-- CTA -->
+            <div style="background:rgba(247,147,26,0.08);border:1px solid rgba(247,147,26,0.2);border-radius:12px;padding:16px;margin-bottom:20px;font-size:12px;color:var(--text-muted);line-height:1.7">
+              Earn points now in <strong style="color:var(--orange)">Airdrop Points</strong> section.<br>
+              Your points at snapshot = your OPN allocation share.
+            </div>
+            <button class="btn btn-primary btn-full" style="font-size:14px;padding:14px" onclick="goto('airdrop-points',null)">⭐ Go Earn Points Now</button>
+            <!-- Notify me -->
+            <div style="margin-top:16px">
+              <div style="display:flex;gap:8px">
+                <input class="input-field" id="ac-email" type="email" placeholder="your@email.com — get notified when claim opens" style="flex:1;font-size:11px;padding:9px 12px">
+                <button onclick="acNotifyMe()" class="btn btn-secondary" style="padding:9px 14px;font-size:12px;white-space:nowrap">🔔 Notify Me</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /sec-airdrop-claim -->
+
 
       <!-- ══════════════ FAUCET ══════════════ -->
       <div id="sec-faucet" class="section">
@@ -3870,6 +3931,518 @@ window.vaultWithdraw      = vaultWithdraw;
 </script>
 
 
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════
+//  LAUNCHPAD
+// ═══════════════════════════════════════════
+var _lpData = {
+  1: { name:'StackFi Protocol', ticker:'STK', priceUsd:0.042, raisedBtc:38.72, capBtc:50, participants:1284, myContribs:[] },
+  2: { name:'BitOracle Network', ticker:'BOR', priceUsd:0.018, raisedBtc:11.40, capBtc:30, participants:634, myContribs:[] }
+};
+var _btcPrice = 98000;
+var _lpAllocations = [];
+
+function lpCalc(id, val) {
+  var btc = parseFloat(val) || 0;
+  var d = _lpData[id];
+  var tokensPerBtc = (_btcPrice * d.priceUsd) ? _btcPrice / d.priceUsd : 0;
+  var tokens = (btc * tokensPerBtc).toFixed(0);
+  var el = document.getElementById('lp'+id+'-tokens');
+  if (el) el.textContent = '≈ ' + parseInt(tokens).toLocaleString() + ' ' + d.ticker + ' tokens (≈ $' + (btc * _btcPrice).toFixed(2) + ')';
+}
+
+async function lpParticipate(id, name, ticker, prefix) {
+  if (!window.handleConnect && !(window.Wallet && Wallet.state && Wallet.state.connected)) {
+    // Check if connected via demo
+    var addrEl = document.getElementById('wallet-address-display');
+    if (!addrEl || !addrEl.textContent || addrEl.textContent === '--') {
+      showToast('Connect wallet first', 'error');
+      openWalletModal();
+      return;
+    }
+  }
+  var amtEl = document.getElementById(prefix + '-amount');
+  var amt = parseFloat(amtEl ? amtEl.value : 0);
+  if (!amt || amt < 0.001) { showToast('Minimum contribution: 0.001 BTC', 'error'); return; }
+  var d = _lpData[id];
+  if (amt > (d.capBtc - d.raisedBtc)) { showToast('Exceeds remaining cap: ' + (d.capBtc-d.raisedBtc).toFixed(3) + ' BTC left', 'error'); return; }
+  var btn = document.getElementById(prefix + '-btn');
+  var statusEl = document.getElementById(prefix + '-status');
+  btn.disabled = true; btn.textContent = '⏳ Signing...';
+  _lpStatus(statusEl, 'info', '📝 Sign your IDO contribution in your wallet...');
+  try {
+    var sig = await _lpSign('OPiLL IDO|ido:'+name+'|amt:'+amt+' BTC|ts:'+Date.now());
+    await new Promise(function(r){setTimeout(r,1200);});
+    // Update raised
+    d.raisedBtc += amt;
+    d.participants += 1;
+    d.myContribs.push(amt);
+    var myTotal = d.myContribs.reduce(function(s,v){return s+v;},0);
+    var tokensPerBtc = _btcPrice / d.priceUsd;
+    var myTokens = Math.floor(myTotal * tokensPerBtc);
+    // Update UI
+    var pct = Math.min(100, d.raisedBtc / d.capBtc * 100);
+    var raisedEl = document.getElementById(prefix+'-raised');
+    var barEl    = document.getElementById(prefix+'-bar');
+    var partEl   = document.getElementById(prefix+'-participants');
+    var contribEl= document.getElementById(prefix+'-my-contrib');
+    if (raisedEl) raisedEl.textContent = d.raisedBtc.toFixed(2) + ' BTC';
+    if (barEl)    barEl.style.width    = pct.toFixed(1) + '%';
+    if (partEl)   partEl.textContent   = d.participants.toLocaleString() + ' participants';
+    if (contribEl)contribEl.textContent= 'Your total: ' + myTotal.toFixed(3) + ' BTC → ' + myTokens.toLocaleString() + ' ' + ticker;
+    // Record allocation
+    _lpAllocations.push({id:id, name:name, ticker:ticker, btc:amt, tokens:myTokens, ts:Date.now()});
+    _lpRefreshAlloc();
+    // Update stat card
+    var allocEl = document.getElementById('lp-my-alloc');
+    var allocSub= document.getElementById('lp-my-alloc-sub');
+    var totalTokens = _lpAllocations.reduce(function(s,a){return s+a.tokens;},0);
+    if (allocEl) allocEl.textContent = totalTokens.toLocaleString() + ' tokens';
+    if (allocSub) allocSub.textContent = _lpAllocations.length + ' IDO(s)';
+    _lpStatus(statusEl, 'success', '✅ Contributed ' + amt + ' BTC → ' + myTokens.toLocaleString() + ' ' + ticker + '!');
+    showToast('🚀 IDO participation confirmed!', 'success');
+    // Award airdrop points
+    apAddPoints('launchpad', 'Participate in IDO: '+name, 300);
+    if (amtEl) amtEl.value = '';
+    btn.textContent = '✅ Done!';
+  } catch(e) {
+    _lpStatus(statusEl, 'error', '❌ ' + (/reject|cancel/i.test(e.message||'')?'Rejected by user':e.message||'Failed'));
+    btn.textContent = '⚡ Participate';
+  }
+  btn.disabled = false;
+}
+
+function _lpRefreshAlloc() {
+  var empty = document.getElementById('lp-alloc-empty');
+  var list  = document.getElementById('lp-alloc-list');
+  if (!list) return;
+  if (_lpAllocations.length === 0) { if(empty) empty.style.display='block'; return; }
+  if (empty) empty.style.display='none';
+  list.innerHTML='';
+  _lpAllocations.slice().reverse().forEach(function(a){
+    var el=document.createElement('div');
+    el.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--surface2);border-radius:10px;font-size:12px;border:1px solid var(--border)';
+    var diff=Math.floor((Date.now()-a.ts)/60000);
+    el.innerHTML='<div><div style="font-weight:700">'+a.name+'</div><div style="color:var(--text-muted);font-size:10px;margin-top:2px">'+diff+'m ago</div></div><div style="text-align:right"><div style="color:var(--orange);font-weight:700">'+a.tokens.toLocaleString()+' '+a.ticker+'</div><div style="color:var(--text-muted);font-size:10px">'+a.btc+' BTC</div></div>';
+    list.appendChild(el);
+  });
+}
+
+function _lpStatus(el, type, msg) {
+  if (!el) return;
+  var bg={info:'rgba(0,229,255,0.08)',success:'rgba(0,255,136,0.08)',error:'rgba(255,68,102,0.08)'};
+  var tc={info:'var(--cyan)',success:'var(--green)',error:'var(--red)'};
+  el.style.display='block';el.style.background=bg[type];el.style.color=tc[type];el.style.border='1px solid '+tc[type];el.textContent=msg;
+}
+
+async function _lpSign(msg) {
+  if (window.Wallet && Wallet.state && Wallet.state.connected && Wallet.signMessage) return await Wallet.signMessage(msg);
+  await new Promise(function(r){setTimeout(r,700+Math.random()*400);});
+  return 'demo_'+Math.random().toString(36).slice(2);
+}
+
+// Live IDO fill simulation
+setInterval(function() {
+  [1,2].forEach(function(id) {
+    var d = _lpData[id];
+    if (d.raisedBtc < d.capBtc) {
+      d.raisedBtc = Math.min(d.capBtc, d.raisedBtc + Math.random()*0.05);
+      d.participants += Math.random()>0.6 ? 1 : 0;
+      var pct = Math.min(100, d.raisedBtc/d.capBtc*100);
+      var prefix = 'lp'+id;
+      var raisedEl=document.getElementById(prefix+'-raised');
+      var barEl=document.getElementById(prefix+'-bar');
+      var partEl=document.getElementById(prefix+'-participants');
+      if(raisedEl) raisedEl.textContent=d.raisedBtc.toFixed(2)+' BTC';
+      if(barEl) barEl.style.width=pct.toFixed(1)+'%';
+      if(partEl) partEl.textContent=d.participants.toLocaleString()+' participants';
+    }
+  });
+}, 5000);
+
+// Launchpad countdown for IDO 1
+(function() {
+  var end1 = Date.now() + 14*3600000 + 32*60000 + 9000;
+  setInterval(function(){
+    var rem = end1 - Date.now(); if (rem<0) rem=0;
+    var h=Math.floor(rem/3600000), m=Math.floor((rem%3600000)/60000), s=Math.floor((rem%60000)/1000);
+    var hEl=document.getElementById('lp1-h'), mEl=document.getElementById('lp1-m'), sEl=document.getElementById('lp1-s');
+    if(hEl) hEl.textContent=String(h).padStart(2,'0');
+    if(mEl) mEl.textContent=String(m).padStart(2,'0');
+    if(sEl) sEl.textContent=String(s).padStart(2,'0');
+  },1000);
+})();
+
+// ═══════════════════════════════════════════
+//  MULTISIG WALLET
+// ═══════════════════════════════════════════
+var _msVaults = [];
+var _msPendingTxs = [];
+var _msActiveVaultIdx = -1;
+
+function msUpdateConfig() {
+  var req = document.getElementById('ms-required');
+  var tot = document.getElementById('ms-total');
+  var summary = document.getElementById('ms-config-summary');
+  if (!req || !tot || !summary) return;
+  var m = req.value, n = tot.value;
+  if (parseInt(m) > parseInt(n)) { req.value = n; m = n; }
+  summary.innerHTML = 'Requires <strong>' + m + ' of ' + n + '</strong> signatures to approve any transaction';
+}
+
+async function msCreateVault() {
+  var nameEl = document.getElementById('ms-vault-name');
+  var reqEl  = document.getElementById('ms-required');
+  var totEl  = document.getElementById('ms-total');
+  var name = nameEl ? nameEl.value.trim() : '';
+  if (!name) { showToast('Enter a vault name', 'error'); return; }
+  var m = parseInt(reqEl ? reqEl.value : 2);
+  var n = parseInt(totEl ? totEl.value : 3);
+  // Collect signer addresses
+  var signers = [];
+  var addrEl = document.getElementById('wallet-address-display');
+  var myAddr = (addrEl && addrEl.textContent && addrEl.textContent !== '--') ? addrEl.textContent : 'tb1q...demo';
+  signers.push(myAddr);
+  for (var i=2; i<=5; i++) {
+    var el = document.getElementById('ms-s'+i);
+    if (el && el.value.trim()) signers.push(el.value.trim());
+  }
+  if (signers.length < 2) { showToast('Add at least one more signer address', 'error'); return; }
+  var btn = document.getElementById('ms-create-btn');
+  var statusEl = document.getElementById('ms-create-status');
+  btn.disabled = true; btn.textContent = '⏳ Signing deployment...';
+  _mkS(statusEl, 'info', '📝 Sign the vault deployment transaction...');
+  try {
+    await _lpSign('OPiLL Multisig Deploy|name:'+name+'|m:'+m+'|n:'+n+'|signers:'+signers.length+'|ts:'+Date.now());
+    await new Promise(function(r){setTimeout(r,1500);});
+    var vaultAddr = 'tb1multi' + Math.random().toString(36).slice(2,10);
+    var vault = {name:name, m:m, n:n, signers:signers, addr:vaultAddr, balance:0, ts:Date.now()};
+    _msVaults.push(vault);
+    _msActiveVaultIdx = _msVaults.length-1;
+    _msRefreshUI();
+    _mkS(statusEl, 'success', '✅ Vault deployed! Address: ' + vaultAddr);
+    showToast('🔐 Multisig vault "' + name + '" deployed!', 'success');
+    nameEl.value='';
+    var propBtn = document.getElementById('ms-propose-btn');
+    if (propBtn) propBtn.disabled = false;
+    apAddPoints('multisig', 'Create Multisig Vault', 150);
+  } catch(e) {
+    _mkS(statusEl, 'error', '❌ ' + (/reject|cancel/i.test(e.message||'')?'Rejected':e.message||'Failed'));
+  }
+  btn.disabled=false; btn.textContent='🔐 Deploy Vault Contract';
+}
+
+function msProposeTx() {
+  if (_msVaults.length === 0) { showToast('Create a vault first', 'error'); return; }
+  document.getElementById('ms-propose-modal').style.display = 'flex';
+}
+
+async function msSubmitProposeTx() {
+  var toEl  = document.getElementById('ms-tx-to');
+  var amtEl = document.getElementById('ms-tx-amount');
+  var noteEl= document.getElementById('ms-tx-note');
+  var to  = toEl  ? toEl.value.trim()  : '';
+  var amt = parseFloat(amtEl ? amtEl.value : 0);
+  if (!to || !amt) { showToast('Fill in recipient and amount', 'error'); return; }
+  var btn2 = document.getElementById('ms-propose-btn2');
+  var statusEl = document.getElementById('ms-propose-status');
+  btn2.disabled=true; btn2.textContent='⏳ Signing...';
+  _mkS(statusEl, 'info', '📝 Sign the proposed transaction...');
+  try {
+    await _lpSign('OPiLL MultisigPropose|to:'+to+'|amt:'+amt+'|note:'+(noteEl?noteEl.value:'')+'|ts:'+Date.now());
+    await new Promise(function(r){setTimeout(r,1200);});
+    var vault = _msVaults[_msActiveVaultIdx] || _msVaults[0];
+    var tx = {
+      id: Math.random().toString(36).slice(2,8).toUpperCase(),
+      vaultName: vault.name, to:to, amt:amt,
+      note: noteEl?noteEl.value.trim():'',
+      signers: [{ addr:'You', ts:Date.now() }],
+      required: vault.m, total: vault.n, ts: Date.now()
+    };
+    _msPendingTxs.unshift(tx);
+    _msRefreshUI();
+    _mkS(statusEl, 'success', '✅ TX #'+tx.id+' proposed! Awaiting '+(vault.m-1)+' more signature(s).');
+    showToast('✍️ Transaction proposed — TX #'+tx.id, 'success');
+    toEl.value=''; amtEl.value=''; if(noteEl) noteEl.value='';
+    setTimeout(function(){document.getElementById('ms-propose-modal').style.display='none';},2000);
+  } catch(e) { _mkS(statusEl,'error','❌ '+(/reject|cancel/i.test(e.message||'')?'Rejected':e.message||'Failed')); }
+  btn2.disabled=false; btn2.textContent='✍️ Sign & Propose';
+}
+
+async function msSignTx(idx) {
+  var tx = _msPendingTxs[idx];
+  if (!tx) return;
+  if (tx.signers.some(function(s){return s.addr==='You';})) { showToast('You already signed this TX','info'); return; }
+  try {
+    await _lpSign('OPiLL MultisigSign|txid:'+tx.id+'|amt:'+tx.amt+'|ts:'+Date.now());
+    await new Promise(function(r){setTimeout(r,800);});
+    tx.signers.push({addr:'You',ts:Date.now()});
+    _msRefreshUI();
+    if (tx.signers.length >= tx.required) {
+      showToast('✅ TX #'+tx.id+' fully signed — broadcasting!','success');
+      setTimeout(function(){ _msPendingTxs.splice(idx,1); _msRefreshUI(); },1500);
+    } else {
+      showToast('Signed! Waiting for '+(tx.required-tx.signers.length)+' more signature(s)','success');
+    }
+  } catch(e) { showToast('Rejected','error'); }
+}
+
+function _msRefreshUI() {
+  var myVEl  = document.getElementById('ms-my-vaults');
+  var pendEl = document.getElementById('ms-pending-count');
+  var secEl  = document.getElementById('ms-total-secured');
+  if (myVEl) myVEl.textContent  = _msVaults.length;
+  if (pendEl) pendEl.textContent = _msPendingTxs.length;
+  if (secEl)  secEl.textContent  = '$' + _msVaults.reduce(function(s,v){return s+v.balance;},0).toFixed(2);
+  // Vaults list
+  var vEmpty = document.getElementById('ms-vaults-empty');
+  var vList  = document.getElementById('ms-vaults-list');
+  if (vList) {
+    if (_msVaults.length===0){if(vEmpty)vEmpty.style.display='block';vList.innerHTML='';return;}
+    if(vEmpty)vEmpty.style.display='none';
+    vList.innerHTML='';
+    _msVaults.forEach(function(v,i){
+      var el=document.createElement('div');
+      el.style.cssText='background:var(--surface2);border:1px solid rgba(247,147,26,0.2);border-radius:12px;padding:14px';
+      el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px"><div><div style="font-weight:700;font-size:14px">'+v.name+'</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">'+v.m+'-of-'+v.n+' multisig</div></div><span style="background:rgba(0,255,136,0.12);color:var(--green);padding:2px 8px;border-radius:4px;font-size:10px">Active</span></div><div style="font-family:monospace;font-size:10px;color:var(--text-muted);margin-bottom:10px;word-break:break-all">'+v.addr+'</div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted)"><span>Signers: '+v.signers.length+'</span><span>Balance: '+v.balance+' BTC</span></div>';
+      vList.appendChild(el);
+    });
+  }
+  // Pending TXs
+  var pEmpty = document.getElementById('ms-pending-empty');
+  var pList  = document.getElementById('ms-pending-list');
+  if (pList) {
+    if (_msPendingTxs.length===0){if(pEmpty)pEmpty.style.display='block';pList.innerHTML='';return;}
+    if(pEmpty)pEmpty.style.display='none';
+    pList.innerHTML='';
+    _msPendingTxs.forEach(function(tx,i){
+      var el=document.createElement('div');
+      el.style.cssText='background:rgba(247,147,26,0.05);border:1px solid rgba(247,147,26,0.25);border-radius:10px;padding:12px';
+      var sigStatus=tx.signers.length+'/'+tx.required+' signatures';
+      var alreadySigned=tx.signers.some(function(s){return s.addr==='You';});
+      el.innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:8px"><div><span style="font-family:Syne,sans-serif;font-weight:700">TX #'+tx.id+'</span> <span style="font-size:10px;color:var(--text-muted)">'+tx.vaultName+'</span></div><span style="font-size:11px;color:var(--orange)">'+sigStatus+'</span></div><div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">To: <span style="font-family:monospace;color:var(--text)">'+tx.to.slice(0,16)+'...</span></div><div style="font-size:11px;color:var(--orange);font-weight:700;margin-bottom:'+(tx.note?'4px':'10px')+'">'+tx.amt+' BTC</div>'+(tx.note?'<div style="font-size:10px;color:var(--text-muted);margin-bottom:10px">Note: '+tx.note+'</div>':'')+'<button onclick="msSignTx('+i+')" class="btn btn-primary btn-full" style="font-size:12px;padding:8px"'+(alreadySigned?' disabled':'')+'>'+( alreadySigned?'✅ You Signed':'✍️ Sign Transaction')+'</button>';
+      pList.appendChild(el);
+    });
+  }
+  var onlineEl=document.getElementById('ms-signers-online');
+  if(onlineEl) onlineEl.textContent=_msVaults.reduce(function(s,v){return s+v.n;},0)||'—';
+}
+
+function _mkS(el,type,msg){
+  if(!el)return;
+  var bg={info:'rgba(0,229,255,0.08)',success:'rgba(0,255,136,0.08)',error:'rgba(255,68,102,0.08)'};
+  var tc={info:'var(--cyan)',success:'var(--green)',error:'var(--red)'};
+  el.style.display='block';el.style.background=bg[type];el.style.color=tc[type];el.style.border='1px solid '+tc[type];el.style.borderRadius='8px';el.style.padding='10px';el.style.fontSize='12px';el.textContent=msg;
+}
+
+document.getElementById('ms-propose-modal').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
+
+// Update owner address when wallet connects
+(function() {
+  var obs = setInterval(function(){
+    var addrEl = document.getElementById('wallet-address-display');
+    var ownerEl = document.getElementById('ms-owner-addr');
+    if (addrEl && ownerEl && addrEl.textContent && addrEl.textContent !== '--') {
+      ownerEl.textContent = addrEl.textContent + ' (your wallet)';
+      clearInterval(obs);
+    }
+  },1000);
+})();
+
+// ═══════════════════════════════════════════
+//  AIRDROP POINTS
+// ═══════════════════════════════════════════
+var _apTasks = [
+  {id:'connect',  label:'Connect Wallet',            desc:'Connect any Bitcoin wallet',           pts:50,   icon:'🔗', done:false, cat:'setup'},
+  {id:'stake',    label:'Stake OPN Tokens',           desc:'Stake any amount for 7+ days',         pts:200,  icon:'⚡', done:false, cat:'defi'},
+  {id:'vault',    label:'Deposit to Vault',           desc:'Make first vault deposit',             pts:150,  icon:'🏦', done:false, cat:'defi'},
+  {id:'lend',     label:'Supply to Lending',          desc:'Supply any asset to lending pool',     pts:120,  icon:'💸', done:false, cat:'defi'},
+  {id:'nft',      label:'Buy or Mint an NFT',         desc:'Purchase or mint any NFT',             pts:100,  icon:'🖼️', done:false, cat:'nft'},
+  {id:'vote',     label:'Vote on DAO Proposal',       desc:'Cast your first governance vote',      pts:80,   icon:'🗳️', done:false, cat:'gov'},
+  {id:'raffle',   label:'Buy Raffle Ticket',          desc:'Purchase at least 1 ticket',           pts:60,   icon:'🎰', done:false, cat:'fun'},
+  {id:'pred',     label:'Place Prediction Bet',       desc:'Bet on any market (min 1,000 sat)',    pts:80,   icon:'🔮', done:false, cat:'defi'},
+  {id:'launchpad',label:'Participate in IDO',         desc:'Contribute to any live IDO',           pts:300,  icon:'🚀', done:false, cat:'launch'},
+  {id:'multisig', label:'Create Multisig Vault',      desc:'Deploy a 2-of-N multisig vault',       pts:150,  icon:'🔐', done:false, cat:'tools'},
+  {id:'yield',    label:'Use Yield Aggregator',       desc:'Make a smart deposit',                 pts:120,  icon:'🌾', done:false, cat:'defi'},
+  {id:'referral', label:'Refer a Friend',             desc:'Get 1 friend to connect wallet',       pts:200,  icon:'👥', done:false, cat:'social'},
+];
+var _apPointsBreakdown = {};
+var _apTotalPts = 0;
+var _apTasksDone = 0;
+
+function apRender() {
+  var list = document.getElementById('ap-tasks-list');
+  if (!list) return;
+  list.innerHTML = '';
+  _apTasks.forEach(function(task) {
+    var el = document.createElement('div');
+    el.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05);transition:background .15s';
+    var checkStyle = task.done
+      ? 'width:28px;height:28px;border-radius:50%;background:rgba(0,255,136,0.2);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--green);font-size:14px'
+      : 'width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-muted);font-size:11px;cursor:pointer';
+    var checkContent = task.done ? '✓' : '○';
+    var ptsStyle = task.done ? 'color:var(--green);font-weight:700;font-size:12px;min-width:60px;text-align:right' : 'color:var(--orange);font-weight:700;font-size:12px;min-width:60px;text-align:right';
+    el.innerHTML =
+      '<div style="'+checkStyle+'" onclick="apManualComplete(\''+task.id+'\')">'+checkContent+'</div>' +
+      '<div style="font-size:18px;flex-shrink:0">'+task.icon+'</div>' +
+      '<div style="flex:1">' +
+        '<div style="font-weight:600;font-size:13px'+(task.done?';color:var(--text-muted);text-decoration:line-through':'')+'">' + task.label + '</div>' +
+        '<div style="font-size:10px;color:var(--text-muted);margin-top:2px">'+task.desc+'</div>' +
+      '</div>' +
+      '<div style="'+ptsStyle+'">'+(task.done?'+':'+')+task.pts+' pts</div>';
+    list.appendChild(el);
+  });
+  // Update progress
+  var done = _apTasks.filter(function(t){return t.done;}).length;
+  var total = _apTasks.length;
+  var pct = total > 0 ? (done/total*100) : 0;
+  var doneEl = document.getElementById('ap-tasks-done');
+  var progEl = document.getElementById('ap-progress-bar');
+  var ptsDsp  = document.getElementById('ap-pts-display');
+  if (doneEl) doneEl.textContent = done;
+  if (progEl) progEl.style.width = pct.toFixed(0)+'%';
+  if (ptsDsp) ptsDsp.textContent = _apTotalPts.toLocaleString() + ' pts';
+  // Update main stats
+  var myPtsEl = document.getElementById('ap-my-pts');
+  var myPtsSubEl = document.getElementById('ap-my-pts-sub');
+  var rankEl = document.getElementById('ap-my-rank');
+  var multEl = document.getElementById('ap-multiplier');
+  var multSubEl = document.getElementById('ap-multiplier-sub');
+  var estEl  = document.getElementById('ap-est-airdrop');
+  var totalEl = document.getElementById('ap-total-display');
+  if (myPtsEl) myPtsEl.textContent = _apTotalPts.toLocaleString();
+  if (myPtsSubEl) myPtsSubEl.textContent = done + ' of ' + total + ' tasks done';
+  var mult = 1.0;
+  var rank = '—';
+  if (_apTotalPts >= 800) { mult = 3.0; rank = 'Top 5%'; }
+  else if (_apTotalPts >= 400) { mult = 2.0; rank = 'Top 10%'; }
+  else if (_apTotalPts >= 200) { mult = 1.5; rank = 'Top 25%'; }
+  if (rankEl) rankEl.textContent = rank;
+  if (multEl) { multEl.textContent = mult.toFixed(1)+'×'; multEl.style.color = mult>=2?'var(--green)':mult>=1.5?'var(--orange)':'var(--text-muted)'; }
+  if (multSubEl) multSubEl.textContent = mult>=2?'Elite tier!':mult>=1.5?'Great progress!':'Keep earning points';
+  var estOpn = Math.floor(_apTotalPts * mult * 2.4);
+  if (estEl) estEl.textContent = estOpn.toLocaleString() + ' OPN';
+  if (totalEl) totalEl.textContent = _apTotalPts.toLocaleString() + ' pts';
+  // Breakdown
+  var bdEl = document.getElementById('ap-breakdown');
+  if (bdEl && Object.keys(_apPointsBreakdown).length > 0) {
+    bdEl.innerHTML = '';
+    Object.entries(_apPointsBreakdown).forEach(function(entry){
+      var div=document.createElement('div');
+      div.style.cssText='display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)';
+      div.innerHTML='<span style="color:var(--text-muted)">'+entry[0]+'</span><span style="color:var(--orange);font-weight:700">+'+entry[1]+'</span>';
+      bdEl.appendChild(div);
+    });
+  }
+  // Referral link
+  var refEl = document.getElementById('ap-ref-link');
+  var addrDisp = document.getElementById('wallet-address-display');
+  if (refEl && addrDisp && addrDisp.textContent && addrDisp.textContent!=='--') {
+    refEl.value = 'https://opill-protocol.vercel.app?ref=' + addrDisp.textContent.replace('…','').replace('...','');
+  }
+}
+
+// Called by other sections when tasks complete
+function apAddPoints(taskId, label, pts) {
+  var task = _apTasks.find(function(t){return t.id===taskId;});
+  if (task && !task.done) {
+    task.done = true;
+    _apTotalPts += pts;
+    _apPointsBreakdown[label] = (_apPointsBreakdown[label]||0) + pts;
+    showToast('⭐ +' + pts + ' pts — ' + label, 'success');
+    apRender();
+  }
+}
+
+// Manual complete (click the circle)
+async function apManualComplete(taskId) {
+  var task = _apTasks.find(function(t){return t.id===taskId;});
+  if (!task || task.done) return;
+  // Check wallet connected
+  var addrEl = document.getElementById('wallet-address-display');
+  var connected = addrEl && addrEl.textContent && addrEl.textContent !== '--';
+  if (!connected && taskId !== 'connect') {
+    showToast('Connect wallet first to complete tasks', 'error');
+    openWalletModal();
+    return;
+  }
+  // Simulate signing for task verification
+  showToast('⏳ Verifying task...', 'info');
+  await new Promise(function(r){setTimeout(r,800);});
+  apAddPoints(taskId, task.label, task.pts);
+}
+
+function apCopyRef() {
+  var el = document.getElementById('ap-ref-link');
+  if (el && el.value && !el.value.includes('Connect')) {
+    navigator.clipboard.writeText(el.value).then(function(){
+      showToast('📋 Referral link copied!', 'success');
+    }).catch(function(){
+      showToast('Copied!', 'success');
+    });
+  } else {
+    showToast('Connect wallet to get your referral link', 'error');
+  }
+}
+
+async function apInviteFriend() {
+  showToast('⏳ Simulating referral...', 'info');
+  await new Promise(function(r){setTimeout(r,1000);});
+  apAddPoints('referral', 'Referral Bonus', 200);
+}
+
+// Auto-complete "Connect Wallet" task when wallet connects
+(function() {
+  setInterval(function(){
+    var addrEl = document.getElementById('wallet-address-display');
+    if (addrEl && addrEl.textContent && addrEl.textContent !== '--') {
+      apAddPoints('connect', 'Connect Wallet', 50);
+    }
+  }, 2000);
+})();
+
+// Airdrop claim countdown
+(function() {
+  var snapshot = new Date('2027-01-15T00:00:00Z').getTime();
+  setInterval(function(){
+    var days = Math.ceil((snapshot - Date.now()) / 86400000);
+    var el = document.getElementById('ac-countdown-days');
+    if (el) el.textContent = days > 0 ? days : '0';
+  }, 10000);
+  var el = document.getElementById('ac-countdown-days');
+  var days = Math.ceil((snapshot - Date.now()) / 86400000);
+  if (el) el.textContent = days > 0 ? days : '0';
+})();
+
+function acNotifyMe() {
+  var el = document.getElementById('ac-email');
+  var email = el ? el.value.trim() : '';
+  if (!email || !email.includes('@')) { showToast('Enter a valid email address', 'error'); return; }
+  showToast('🔔 You\'ll be notified at ' + email + ' when claim opens!', 'success');
+  if (el) el.value = '';
+}
+
+// Window exports
+window.lpCalc          = lpCalc;
+window.lpParticipate   = lpParticipate;
+window.msUpdateConfig  = msUpdateConfig;
+window.msCreateVault   = msCreateVault;
+window.msProposeTx     = msProposeTx;
+window.msSubmitProposeTx = msSubmitProposeTx;
+window.msSignTx        = msSignTx;
+window.apManualComplete = apManualComplete;
+window.apCopyRef       = apCopyRef;
+window.apInviteFriend  = apInviteFriend;
+window.apAddPoints     = apAddPoints;
+window.acNotifyMe      = acNotifyMe;
+
+// Init
+apRender();
+</script>
+
+
   <!-- ══ WALLET CONNECT MODAL ══ -->
   <div id="wallet-modal-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.82);backdrop-filter:blur(8px);align-items:center;justify-content:center">
     <div style="background:#0a1020;border:1px solid rgba(247,147,26,0.35);border-radius:22px;padding:32px;width:420px;max-width:95vw;position:relative;box-shadow:0 0 60px rgba(247,147,26,0.12)">
@@ -3908,9 +4481,7 @@ window.vaultWithdraw      = vaultWithdraw;
     </div>
   </div>
 
-<script>
-// ═══ wallet.js ═══
-// ═══════════════════════════════════════════════════════════════
+<script>// ═══════════════════════════════════════════════════════════════
 //  OPiLL Protocol — Wallet Module
 //  Supports: OP_WALLET, UniSat, Xverse, OKX
 //  No external dependencies — pure browser JS
@@ -4225,595 +4796,6 @@ const Wallet = (() => {
 window.Wallet = Wallet;
 
 
-// ═══ opnet.js ═══
-// ═══════════════════════════════════════════════════════════════
-//  OPiLL Protocol — OP_NET RPC Module
-//  Reads on-chain data via OP_NET JSON-RPC endpoints
-//  No private keys — read-only from frontend
-// ═══════════════════════════════════════════════════════════════
-
-'use strict';
-
-const OPNet = (() => {
-
-  const ENDPOINTS = {
-    mainnet: 'https://mainnet.opnet.org',
-    testnet: 'https://testnet.opnet.org',
-  };
-
-  let _network = 'mainnet';
-  let _endpoint = ENDPOINTS.mainnet;
-
-  function setNetwork(net) {
-    _network = (net === 'testnet') ? 'testnet' : 'mainnet';
-    _endpoint = ENDPOINTS[_network];
-  }
-
-  function getNetwork() { return _network; }
-  function getEndpoint() { return _endpoint; }
-
-  // ── Generic JSON-RPC call ──
-  async function rpc(method, params = []) {
-    const res = await fetch(_endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: Date.now(), method, params }),
-    });
-    if (!res.ok) throw new Error(`RPC HTTP error: ${res.status}`);
-    const json = await res.json();
-    if (json.error) throw new Error(`RPC error: ${json.error.message || JSON.stringify(json.error)}`);
-    return json.result;
-  }
-
-  // ── Get address balance (BTC in satoshis) ──
-  async function getBalance(address) {
-    try {
-      const result = await rpc('btc_getBalance', [address]);
-      return {
-        confirmed: parseInt(result?.confirmed || 0, 10),
-        unconfirmed: parseInt(result?.unconfirmed || 0, 10),
-        total: parseInt(result?.total || result?.confirmed || 0, 10),
-      };
-    } catch (e) {
-      console.warn('[OPNet] getBalance failed:', e.message);
-      return { confirmed: 0, unconfirmed: 0, total: 0 };
-    }
-  }
-
-  // ── Get OP20 token balance ──
-  async function getTokenBalance(contractAddress, walletAddress) {
-    try {
-      const result = await rpc('op_getTokenBalance', [contractAddress, walletAddress]);
-      return {
-        balance: result?.balance || '0',
-        decimals: result?.decimals || 8,
-        symbol: result?.symbol || 'OPN',
-      };
-    } catch (e) {
-      console.warn('[OPNet] getTokenBalance failed:', e.message);
-      return { balance: '0', decimals: 8, symbol: 'OPN' };
-    }
-  }
-
-  // ── Get latest block info ──
-  async function getBlockInfo() {
-    try {
-      const result = await rpc('btc_getBlockCount', []);
-      return { blockHeight: result || 0 };
-    } catch (e) {
-      console.warn('[OPNet] getBlockInfo failed:', e.message);
-      return { blockHeight: 0 };
-    }
-  }
-
-  // ── Get transaction history for address ──
-  async function getTransactions(address, limit = 20) {
-    try {
-      const result = await rpc('btc_getTransactions', [address, limit]);
-      return Array.isArray(result) ? result : [];
-    } catch (e) {
-      console.warn('[OPNet] getTransactions failed:', e.message);
-      return [];
-    }
-  }
-
-  // ── Broadcast raw transaction ──
-  async function broadcastTx(rawTxHex) {
-    const result = await rpc('btc_sendRawTransaction', [rawTxHex]);
-    return result; // txid
-  }
-
-  // ── Staking info for address ──
-  async function getStakingInfo(walletAddress) {
-    try {
-      const result = await rpc('op_getStakingInfo', [walletAddress]);
-      return result || { staked: '0', rewards: '0', tier: 'None' };
-    } catch (e) {
-      return { staked: '0', rewards: '0', tier: 'None' };
-    }
-  }
-
-  // ── Health check ──
-  async function ping() {
-    try {
-      await getBlockInfo();
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  // ── Format token amount with decimals ──
-  function formatTokenAmount(raw, decimals = 8) {
-    const n = BigInt(raw || '0');
-    const d = BigInt(10) ** BigInt(decimals);
-    const whole = n / d;
-    const frac = n % d;
-    const fracStr = frac.toString().padStart(decimals, '0').slice(0, 4).replace(/0+$/, '') || '0';
-    return `${whole}.${fracStr}`;
-  }
-
-  return {
-    setNetwork,
-    getNetwork,
-    getEndpoint,
-    rpc,
-    getBalance,
-    getTokenBalance,
-    getBlockInfo,
-    getTransactions,
-    broadcastTx,
-    getStakingInfo,
-    formatTokenAmount,
-    ping,
-  };
-
-})();
-
-window.OPNet = OPNet;
-
-
-// ═══ price.js ═══
-// ═══════════════════════════════════════════════════════════════
-//  OPiLL Protocol — Real-Time Price Module
-//  Sources: DexScreener API (primary), CoinGecko (BTC fallback)
-//  Auto-updates every 20 seconds
-// ═══════════════════════════════════════════════════════════════
-
-'use strict';
-
-const PriceModule = (() => {
-
-  // ── Config ──
-  const CONFIG = {
-    updateInterval: 20000, // 20 seconds
-    // DexScreener pair address for OPN token (update with real address when live)
-    dexscreenerPair: 'BTC_OPN_PAIR_ADDRESS',
-    // CoinGecko IDs
-    btcCoinGeckoId: 'bitcoin',
-    // Fallback static prices for demo
-    useFallback: false,
-  };
-
-  // ── Current price data ──
-  const data = {
-    btc: { price: 0, change24h: 0, volume24h: 0, marketCap: 0 },
-    opn: { price: 0, change24h: 0, volume24h: 0, marketCap: 0, liquidity: 0 },
-    lastUpdated: null,
-  };
-
-  let _timer = null;
-  const _listeners = [];
-
-  // ── Fetch BTC price from CoinGecko ──
-  async function fetchBTCPrice() {
-    try {
-      const url = `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      const btc = json.bitcoin;
-      data.btc = {
-        price: btc.usd || 0,
-        change24h: btc.usd_24h_change || 0,
-        volume24h: btc.usd_24h_vol || 0,
-        marketCap: btc.usd_market_cap || 0,
-      };
-      return data.btc;
-    } catch (e) {
-      console.warn('[Price] BTC fetch failed:', e.message);
-      // Try alternative
-      return fetchBTCFallback();
-    }
-  }
-
-  // ── BTC price fallback via alternative API ──
-  async function fetchBTCFallback() {
-    try {
-      const res = await fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot', {
-        signal: AbortSignal.timeout(5000)
-      });
-      const json = await res.json();
-      const price = parseFloat(json?.data?.amount || 0);
-      data.btc.price = price;
-      return data.btc;
-    } catch (e) {
-      console.warn('[Price] BTC fallback failed:', e.message);
-      return data.btc;
-    }
-  }
-
-  // ── Fetch OPN price from DexScreener ──
-  async function fetchOPNPrice() {
-    try {
-      // DexScreener search for OPN token
-      const res = await fetch(
-        `https://api.dexscreener.com/latest/dex/search/?q=OPN`,
-        { signal: AbortSignal.timeout(8000) }
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      const pairs = json?.pairs;
-      if (!pairs || pairs.length === 0) throw new Error('No pairs found');
-
-      // Find most relevant OPN pair
-      const opnPair = pairs.find(p =>
-        (p.baseToken?.symbol?.toUpperCase() === 'OPN' ||
-         p.quoteToken?.symbol?.toUpperCase() === 'OPN') &&
-        parseFloat(p.liquidity?.usd || 0) > 1000
-      ) || pairs[0];
-
-      const isBase = opnPair.baseToken?.symbol?.toUpperCase() === 'OPN';
-      const price = parseFloat(opnPair.priceUsd || 0);
-      const change24h = parseFloat(opnPair.priceChange?.h24 || 0);
-      const volume24h = parseFloat(opnPair.volume?.h24 || 0);
-      const liquidity = parseFloat(opnPair.liquidity?.usd || 0);
-      const fdv = parseFloat(opnPair.fdv || 0);
-
-      data.opn = { price, change24h, volume24h, marketCap: fdv, liquidity };
-      return data.opn;
-    } catch (e) {
-      console.warn('[Price] OPN DexScreener failed:', e.message);
-      return data.opn;
-    }
-  }
-
-  // ── Fetch all prices ──
-  async function fetchAll() {
-    await Promise.allSettled([fetchBTCPrice(), fetchOPNPrice()]);
-    data.lastUpdated = new Date();
-    _notifyListeners();
-    return data;
-  }
-
-  // ── Notify all listeners ──
-  function _notifyListeners() {
-    _listeners.forEach(fn => { try { fn({ ...data }); } catch (_) {} });
-  }
-
-  // ── Subscribe to price updates ──
-  function subscribe(fn) {
-    _listeners.push(fn);
-    // Immediately call with current data if available
-    if (data.lastUpdated) { try { fn({ ...data }); } catch (_) {} }
-    return () => {
-      const idx = _listeners.indexOf(fn);
-      if (idx !== -1) _listeners.splice(idx, 1);
-    };
-  }
-
-  // ── Start auto-update ──
-  function start() {
-    if (_timer) return;
-    fetchAll(); // immediate first fetch
-    _timer = setInterval(fetchAll, CONFIG.updateInterval);
-  }
-
-  // ── Stop auto-update ──
-  function stop() {
-    if (_timer) { clearInterval(_timer); _timer = null; }
-  }
-
-  // ── Formatters ──
-  function formatPrice(n) {
-    if (!n || n === 0) return '$0.00';
-    if (n >= 1) return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    return '$' + n.toFixed(6);
-  }
-
-  function formatLarge(n) {
-    if (!n || n === 0) return '$0';
-    if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
-    if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
-    if (n >= 1e3) return '$' + (n / 1e3).toFixed(2) + 'K';
-    return '$' + n.toFixed(2);
-  }
-
-  function formatChange(n) {
-    const sign = n >= 0 ? '+' : '';
-    return `${sign}${n.toFixed(2)}%`;
-  }
-
-  function changeColor(n) {
-    return n >= 0 ? 'var(--green)' : 'var(--red)';
-  }
-
-  // ── Update DOM elements by data-price attribute ──
-  function bindDOM() {
-    subscribe((d) => {
-      // BTC price elements
-      document.querySelectorAll('[data-price="btc"]').forEach(el => {
-        el.textContent = formatPrice(d.btc.price);
-      });
-      document.querySelectorAll('[data-price-change="btc"]').forEach(el => {
-        el.textContent = formatChange(d.btc.change24h);
-        el.style.color = changeColor(d.btc.change24h);
-      });
-      // OPN price elements
-      document.querySelectorAll('[data-price="opn"]').forEach(el => {
-        el.textContent = formatPrice(d.opn.price);
-      });
-      document.querySelectorAll('[data-price-change="opn"]').forEach(el => {
-        el.textContent = formatChange(d.opn.change24h);
-        el.style.color = changeColor(d.opn.change24h);
-      });
-      document.querySelectorAll('[data-price-volume="opn"]').forEach(el => {
-        el.textContent = formatLarge(d.opn.volume24h);
-      });
-      document.querySelectorAll('[data-price-mcap="opn"]').forEach(el => {
-        el.textContent = formatLarge(d.opn.marketCap);
-      });
-      document.querySelectorAll('[data-price-liquidity="opn"]').forEach(el => {
-        el.textContent = formatLarge(d.opn.liquidity);
-      });
-      // Last updated
-      document.querySelectorAll('[data-price-updated]').forEach(el => {
-        el.textContent = d.lastUpdated ? d.lastUpdated.toLocaleTimeString() : '--';
-      });
-    });
-  }
-
-  return {
-    data,
-    fetchAll,
-    fetchBTCPrice,
-    fetchOPNPrice,
-    subscribe,
-    start,
-    stop,
-    bindDOM,
-    formatPrice,
-    formatLarge,
-    formatChange,
-    changeColor,
-  };
-
-})();
-
-window.PriceModule = PriceModule;
-
-
-// ═══ faucet.js ═══
-// ═══════════════════════════════════════════════════════════════
-//  OPiLL Protocol — Faucet Module
-//  Rate limit: 1 claim per 24 hours per address (localStorage)
-//  Integrates with /api/faucet endpoint when deployed
-// ═══════════════════════════════════════════════════════════════
-
-'use strict';
-
-const FaucetModule = (() => {
-
-  const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
-  const FAUCET_AMOUNT = '100'; // OPN tokens
-  const STORAGE_KEY = 'opill_faucet_claims';
-
-  // ── Get claim records from localStorage ──
-  function _getRecords() {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    } catch (_) { return {}; }
-  }
-
-  function _saveRecords(records) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); } catch (_) {}
-  }
-
-  // ── Check if address can claim ──
-  function canClaim(address) {
-    if (!address) return { allowed: false, reason: 'No wallet connected' };
-    const records = _getRecords();
-    const lastClaim = records[address];
-    if (!lastClaim) return { allowed: true, reason: null, nextClaim: null };
-    const elapsed = Date.now() - lastClaim;
-    if (elapsed >= COOLDOWN_MS) return { allowed: true, reason: null, nextClaim: null };
-    const remaining = COOLDOWN_MS - elapsed;
-    const hours = Math.floor(remaining / 3600000);
-    const minutes = Math.floor((remaining % 3600000) / 60000);
-    return {
-      allowed: false,
-      reason: `Cooldown active. Try again in ${hours}h ${minutes}m`,
-      nextClaim: new Date(lastClaim + COOLDOWN_MS),
-      remainingMs: remaining,
-    };
-  }
-
-  // ── Record a claim ──
-  function _recordClaim(address) {
-    const records = _getRecords();
-    records[address] = Date.now();
-    _saveRecords(records);
-  }
-
-  // ── Perform faucet claim ──
-  async function claim(address) {
-    if (!address) throw new Error('Wallet not connected. Please connect your wallet first.');
-
-    // Check rate limit
-    const check = canClaim(address);
-    if (!check.allowed) throw new Error(check.reason);
-
-    // Show loading state
-    _setUI('loading', `Sending ${FAUCET_AMOUNT} OPN to your wallet...`);
-
-    try {
-      // Try backend API first
-      let result = await _claimFromAPI(address);
-
-      // If API not available, use demo mode
-      if (!result.success && result.demo) {
-        result = await _claimDemo(address);
-      }
-
-      if (!result.success) throw new Error(result.error || 'Faucet claim failed');
-
-      // Record claim locally
-      _recordClaim(address);
-
-      _setUI('success', `✅ ${FAUCET_AMOUNT} OPN sent! TX: ${result.txid ? result.txid.slice(0, 16) + '...' : 'confirmed'}`);
-      return result;
-
-    } catch (e) {
-      _setUI('error', `❌ ${e.message}`);
-      throw e;
-    }
-  }
-
-  // ── Call backend API ──
-  async function _claimFromAPI(address) {
-    try {
-      const res = await fetch('/api/faucet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address }),
-        signal: AbortSignal.timeout(15000),
-      });
-      const json = await res.json();
-      if (res.status === 429) return { success: false, error: json.error || 'Rate limited by server' };
-      if (!res.ok) return { success: false, error: json.error || `Server error ${res.status}`, demo: true };
-      return { success: true, txid: json.txid, amount: json.amount };
-    } catch (_) {
-      // API not available — use demo mode
-      return { success: false, demo: true };
-    }
-  }
-
-  // ── Demo mode (when no backend) ──
-  async function _claimDemo(address) {
-    // Simulate network delay
-    await new Promise(r => setTimeout(r, 2000));
-    const fakeTxid = Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-    return { success: true, txid: fakeTxid, amount: FAUCET_AMOUNT, demo: true };
-  }
-
-  // ── UI state helper ──
-  function _setUI(state, message) {
-    const btn = document.getElementById('faucet-claim-btn');
-    const statusEl = document.getElementById('faucet-status');
-    const loadingEl = document.getElementById('faucet-loading');
-
-    if (btn) {
-      btn.disabled = (state === 'loading');
-      btn.textContent = state === 'loading' ? '⏳ Sending...' : '🚰 Claim OPN Tokens';
-    }
-    if (loadingEl) {
-      loadingEl.style.display = state === 'loading' ? 'block' : 'none';
-    }
-    if (statusEl && message) {
-      statusEl.style.display = 'block';
-      statusEl.textContent = message;
-      statusEl.className = 'faucet-status ' + state;
-      if (state === 'success' || state === 'error') {
-        setTimeout(() => {
-          if (statusEl) statusEl.style.display = 'none';
-        }, 6000);
-      }
-    }
-  }
-
-  // ── Render cooldown timer ──
-  function renderCooldown(address, targetEl) {
-    if (!targetEl) return;
-    const update = () => {
-      const check = canClaim(address);
-      if (check.allowed) {
-        targetEl.textContent = 'Ready to claim!';
-        targetEl.style.color = 'var(--green)';
-        return;
-      }
-      const ms = check.remainingMs;
-      const h = Math.floor(ms / 3600000);
-      const m = Math.floor((ms % 3600000) / 60000);
-      const s = Math.floor((ms % 60000) / 1000);
-      targetEl.textContent = `Next claim: ${h}h ${m}m ${s}s`;
-      targetEl.style.color = 'var(--text-muted)';
-    };
-    update();
-    return setInterval(update, 1000);
-  }
-
-  // ── Initialize faucet UI ──
-  function init() {
-    const btn = document.getElementById('faucet-claim-btn');
-    if (!btn) return;
-
-    btn.addEventListener('click', async () => {
-      const address = window.Wallet?.state?.address;
-      if (!address) {
-        _setUI('error', '⚠️ Please connect your wallet first');
-        return;
-      }
-      try {
-        await claim(address);
-      } catch (_) { /* error already shown in _setUI */ }
-    });
-
-    // Update claim button state when wallet connects
-    if (window.Wallet) {
-      Wallet.on('accountChanged', ({ address }) => updateClaimButton(address));
-    }
-  }
-
-  // ── Update claim button based on wallet + cooldown ──
-  function updateClaimButton(address) {
-    const btn = document.getElementById('faucet-claim-btn');
-    const cooldownEl = document.getElementById('faucet-cooldown');
-    if (!btn) return;
-
-    if (!address) {
-      btn.disabled = true;
-      btn.textContent = '🔌 Connect Wallet to Claim';
-      return;
-    }
-
-    const check = canClaim(address);
-    btn.disabled = !check.allowed;
-    btn.textContent = check.allowed ? '🚰 Claim OPN Tokens' : '⏳ Cooldown Active';
-
-    if (cooldownEl) {
-      if (_cooldownTimer) clearInterval(_cooldownTimer);
-      _cooldownTimer = renderCooldown(address, cooldownEl);
-    }
-  }
-
-  let _cooldownTimer = null;
-
-  return {
-    canClaim,
-    claim,
-    renderCooldown,
-    updateClaimButton,
-    init,
-    FAUCET_AMOUNT,
-    COOLDOWN_MS,
-  };
-
-})();
-
-window.FaucetModule = FaucetModule;
-
-
-// ═══ ui.js ═══
 // ═══════════════════════════════════════════════════════════════
 //  OPiLL Protocol — UI Controller v2 (fixed navigation)
 // ═══════════════════════════════════════════════════════════════
@@ -4865,90 +4847,17 @@ function goto(id, navEl) {
 }
 
 // ── WALLET MODAL ──
-function openWalletModal(){
-  var m=document.getElementById('wallet-modal-overlay');
-  if(m) m.style.display='flex';
-  _detectWallets(); _clearMsg();
-}
-function closeWalletModal(){
-  var m=document.getElementById('wallet-modal-overlay');
-  if(m) m.style.display='none';
-}
-function _detectWallets(){
-  if(!window.Wallet) return;
-  var inst=Wallet.detectInstalled();
-  Object.keys(inst).forEach(function(t){
-    var el=document.getElementById(t+'-status');
-    if(!el) return;
-    el.textContent=inst[t]?'✓ Installed':'Not installed';
-    el.style.color=inst[t]?'#00ff88':'rgba(90,96,128,0.8)';
-  });
-}
-function _clearMsg(){
-  var e=document.getElementById('wallet-error'),l=document.getElementById('wallet-loading');
-  if(e){e.style.display='none';e.textContent='';e.onclick=null;}
-  if(l) l.style.display='none';
-}
-function _showLoad(msg){
-  var l=document.getElementById('wallet-loading'),t=document.getElementById('wallet-loading-text');
-  if(l) l.style.display='block'; if(t) t.textContent=msg||'Connecting...';
-}
-function _showErr(msg,url){
-  var l=document.getElementById('wallet-loading'),e=document.getElementById('wallet-error');
-  if(l) l.style.display='none';
-  if(!e) return;
-  e.style.display='block'; e.textContent='⚠️ '+msg;
-  if(url){e.style.cursor='pointer';e.textContent+=' → Click to install';e.onclick=function(){window.open(url,'_blank');};}
-}
 
-async function handleConnect(type){
-  if(!window.Wallet){_showErr('Wallet module not loaded');return;}
-  _clearMsg();
-  var meta=Wallet.META[type]||{};
-  _showLoad('Connecting to '+(meta.name||type)+'...');
-  try{
-    var r=await Wallet.connect(type);
-    closeWalletModal(); _onConnected(r.address);
-    showToast('✅ '+(meta.name||type)+' connected!','success');
-  }catch(err){
-    var msg=err.message||'Connection failed';
-    if(err.notInstalled) _showErr((meta.name||type)+' not installed',err.installUrl);
-    else if(/reject|cancel|denied/i.test(msg)) _showErr('Connection rejected by user');
-    else _showErr(msg);
-  }
-}
+
+
+
+
 
 function disconnectWallet(){
   if(window.Wallet) Wallet.disconnect();
   _onDisconnected();
 }
 
-function _onConnected(addr){
-  var cb=document.getElementById('connect-wallet-btn'),
-      badge=document.getElementById('connected-badge'),
-      info=document.getElementById('wallet-info-btn'),
-      addrEl=document.getElementById('wallet-address-display'),
-      iconEl=document.getElementById('wallet-icon-el');
-  if(cb) cb.style.display='none';
-  if(badge) badge.style.display='flex';
-  if(info) info.style.display='flex';
-  if(addrEl) addrEl.textContent=_short(addr);
-  if(iconEl && window.Wallet){
-    var icons={
-      opwallet:'<svg width="18" height="18" viewBox="0 0 100 100" fill="none"><defs><linearGradient id="ti1" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#ff4400"/><stop offset="100%" stop-color="#f7931a"/></linearGradient></defs><circle cx="44" cy="58" r="30" fill="none" stroke="white" stroke-width="11" stroke-dasharray="145 48" stroke-dashoffset="-8" stroke-linecap="round"/><circle cx="76" cy="26" r="14" fill="none" stroke="url(#ti1)" stroke-width="9"/><path d="M65 37 Q59 48 60 58" fill="none" stroke="url(#ti1)" stroke-width="9" stroke-linecap="round"/></svg>',
-      unisat:'<svg width="18" height="18" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" fill="#f7931a"/><path d="M18 15 L18 58 Q18 85 50 85 Q82 85 82 58 L82 15 L65 15 L65 58 Q65 68 50 68 Q35 68 35 58 L35 15 Z" fill="white"/></svg>',
-      xverse:'<svg width="18" height="18" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" fill="#1a1033"/><line x1="16" y1="16" x2="84" y2="84" stroke="#EE7B30" stroke-width="15" stroke-linecap="round"/><line x1="84" y1="16" x2="16" y2="84" stroke="#EE7B30" stroke-width="15" stroke-linecap="round"/></svg>',
-      okx:'<svg width="18" height="18" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" fill="#000"/><path d="M4 50C4 24.6 24.6 4 50 4C75.4 4 96 24.6 96 50C96 75.4 75.4 96 50 96C24.6 96 4 75.4 4 50Z" stroke="white" stroke-width="9" fill="none"/><circle cx="50" cy="50" r="18" fill="white"/></svg>'
-    };
-    iconEl.innerHTML=icons[Wallet.state.type]||'◎';
-  }
-  if(window.Wallet){
-    Wallet.on('balance',function(d){var e=document.getElementById('wallet-balance-display');if(e)e.textContent=d.btc+' BTC';});
-    Wallet.on('accountChanged',function(d){if(addrEl)addrEl.textContent=_short(d.address);showToast('🔄 '+_short(d.address),'info');});
-    Wallet.on('disconnect',function(){_onDisconnected();});
-  }
-  if(window.FaucetModule) FaucetModule.updateClaimButton(addr);
-}
 
 function _onDisconnected(){
   var cb=document.getElementById('connect-wallet-btn'),
@@ -5095,9 +5004,9 @@ function _init(){
 
 // ── GLOBAL EXPORTS ──
 window.goto=goto;
-window.openWalletModal=openWalletModal;
-window.closeWalletModal=closeWalletModal;
-window.handleConnect=handleConnect;
+
+
+
 window.disconnectWallet=disconnectWallet;
 window.selectTier=selectTier;
 window.tabSwitch=tabSwitch;
@@ -5109,7 +5018,285 @@ if(document.readyState==='loading'){
 }else{
   _init();
 }
+</script>
 
+
+  <!-- ══ NOTIFICATION PANEL ══ -->
+  <div id="notif-overlay" onclick="closeNotifPanel()" style="display:none;position:fixed;inset:0;z-index:8000"></div>
+
+  <div id="notif-panel" style="
+    display:none;
+    position:fixed;
+    top:62px;
+    right:16px;
+    width:360px;
+    max-width:95vw;
+    max-height:520px;
+    background:#0a1020;
+    border:1px solid rgba(247,147,26,0.3);
+    border-radius:16px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(247,147,26,0.08);
+    z-index:8001;
+    overflow:hidden;
+    animation:notifSlideIn 0.18s ease-out;
+  ">
+    <style>
+      @keyframes notifSlideIn {
+        from { opacity:0; transform:translateY(-10px) scale(0.97); }
+        to   { opacity:1; transform:translateY(0) scale(1); }
+      }
+      .notif-item {
+        display:flex; gap:12px; padding:12px 16px;
+        border-bottom:1px solid rgba(255,255,255,0.05);
+        cursor:pointer; transition:background .15s;
+      }
+      .notif-item:hover { background:rgba(247,147,26,0.06); }
+      .notif-item.unread { border-left:3px solid var(--orange); }
+      .notif-item.unread:hover { background:rgba(247,147,26,0.09); }
+      .notif-icon-wrap {
+        width:36px; height:36px; border-radius:10px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:18px; flex-shrink:0;
+      }
+      .notif-badge-count {
+        position:absolute; top:-4px; right:-4px;
+        background:var(--orange); color:#000; font-weight:800;
+        font-size:9px; border-radius:50%; min-width:16px; height:16px;
+        display:flex; align-items:center; justify-content:center;
+        padding:0 3px; border:2px solid #0a1020;
+        animation:pulse 1.5s ease-in-out infinite;
+      }
+    </style>
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.07)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-family:Syne,sans-serif;font-weight:800;font-size:15px">Notifications</span>
+        <span id="notif-unread-badge" style="display:none;background:rgba(247,147,26,0.2);color:var(--orange);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;border:1px solid rgba(247,147,26,0.35)"></span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button onclick="notifMarkAllRead()" style="background:none;border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:var(--text-muted);font-size:10px;padding:4px 8px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='rgba(247,147,26,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'">✓ Mark all read</button>
+        <button onclick="notifClearAll()" style="background:none;border:1px solid rgba(255,68,102,0.2);border-radius:6px;color:rgba(255,68,102,0.7);font-size:10px;padding:4px 8px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='rgba(255,68,102,0.5)'" onmouseout="this.style.borderColor='rgba(255,68,102,0.2)'">Clear</button>
+        <button onclick="closeNotifPanel()" style="background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:0 4px;line-height:1">×</button>
+      </div>
+    </div>
+    <!-- Filter tabs -->
+    <div style="display:flex;gap:0;padding:8px 16px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+      <button class="notif-tab active" id="ntab-all" onclick="notifSetTab('all',this)" style="background:none;border:none;border-bottom:2px solid var(--orange);color:var(--text);font-size:11px;font-weight:700;padding:4px 10px 8px;cursor:pointer;transition:color .15s">All</button>
+      <button class="notif-tab" id="ntab-defi" onclick="notifSetTab('defi',this)" style="background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-size:11px;padding:4px 10px 8px;cursor:pointer">DeFi</button>
+      <button class="notif-tab" id="ntab-dao" onclick="notifSetTab('dao',this)" style="background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-size:11px;padding:4px 10px 8px;cursor:pointer">DAO</button>
+      <button class="notif-tab" id="ntab-nft" onclick="notifSetTab('nft',this)" style="background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-size:11px;padding:4px 10px 8px;cursor:pointer">NFT</button>
+      <button class="notif-tab" id="ntab-system" onclick="notifSetTab('system',this)" style="background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-size:11px;padding:4px 10px 8px;cursor:pointer">System</button>
+    </div>
+    <!-- Notif list -->
+    <div id="notif-list" style="overflow-y:auto;max-height:350px"></div>
+    <!-- Footer -->
+    <div style="padding:10px 16px;border-top:1px solid rgba(255,255,255,0.05);text-align:center">
+      <button onclick="closeNotifPanel()" style="background:none;border:none;color:var(--text-muted);font-size:11px;cursor:pointer">Close</button>
+    </div>
+  </div>
+
+  <script>
+  // ═══════════════════════════════════════════════════════════
+  //  NOTIFICATION SYSTEM
+  // ═══════════════════════════════════════════════════════════
+  var _notifData = [];
+  var _notifTab  = 'all';
+  var _notifOpen = false;
+
+  var _notifDefaults = [
+    { id:'n1', type:'system', icon:'⚡', iconBg:'rgba(247,147,26,0.15)', title:'Welcome to OPiLL Protocol!', body:'Bitcoin-native DeFi on Testnet4. Connect wallet to start earning.', ts: Date.now()-3600000*2, read:false },
+    { id:'n2', type:'defi',   icon:'🏆', iconBg:'rgba(0,255,136,0.12)',  title:'Airdrop Season 1 is LIVE', body:'Earn points by completing tasks. Snapshot: Jan 15, 2027 · 10M OPN prize pool.', ts: Date.now()-3600000*5, read:false },
+    { id:'n3', type:'dao',    icon:'🗳️', iconBg:'rgba(0,229,255,0.12)',  title:'New Governance Proposal', body:'OIP-26: Launch OPiLL NFT staking with 15% APY bonus. Voting ends in 8 days.', ts: Date.now()-3600000*8, read:false },
+    { id:'n4', type:'nft',    icon:'🖼️', iconBg:'rgba(180,60,255,0.12)', title:'NFT Floor Price Update', body:'OPiLL Genesis floor dropped to 3,000 sat. 47 new listings in last hour.', ts: Date.now()-3600000*12, read:true },
+    { id:'n5', type:'defi',   icon:'📈', iconBg:'rgba(0,255,136,0.12)',  title:'BTC Vault APY Increased', body:'Revenue Vault BTC APY boosted to 24.8%. Deposit now to lock in the rate.', ts: Date.now()-86400000, read:true },
+    { id:'n6', type:'system', icon:'🚀', iconBg:'rgba(247,147,26,0.15)', title:'StackFi IDO: 77% Filled!', body:'Only 11.28 BTC remaining. Closes in 14 hours. Participate now.', ts: Date.now()-86400000*1.5, read:true },
+    { id:'n7', type:'defi',   icon:'💰', iconBg:'rgba(0,255,136,0.15)',  title:'Staking Rewards Accruing', body:'Connect wallet and stake OPN to start earning 18.5% APY automatically.', ts: Date.now()-86400000*2, read:true },
+  ];
+  _notifData = _notifDefaults.slice();
+
+  function _notifUnreadCount() {
+    return _notifData.filter(function(n){ return !n.read; }).length;
+  }
+
+  function _notifUpdateBadge() {
+    var count = _notifUnreadCount();
+    var dot   = document.getElementById('notif-dot');
+    var badge = document.getElementById('notif-unread-badge');
+    var btnEl = document.getElementById('notif-btn');
+
+    if (dot) dot.style.display = count > 0 ? 'block' : 'none';
+    if (badge) {
+      if (count > 0) {
+        badge.style.display = 'inline-block';
+        badge.textContent = count + ' unread';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+    // Also show count badge on the bell button itself
+    var existBadge = document.getElementById('notif-count-badge');
+    if (!existBadge && count > 0) {
+      var b = document.createElement('div');
+      b.id = 'notif-count-badge';
+      b.className = 'notif-badge-count';
+      b.textContent = count > 9 ? '9+' : count;
+      if (btnEl) btnEl.appendChild(b);
+    } else if (existBadge) {
+      if (count > 0) { existBadge.style.display='flex'; existBadge.textContent = count>9?'9+':count; }
+      else { existBadge.style.display='none'; }
+    }
+  }
+
+  function _notifTimeAgo(ts) {
+    var diff = Date.now() - ts;
+    if (diff < 60000)    return Math.floor(diff/1000) + 's ago';
+    if (diff < 3600000)  return Math.floor(diff/60000) + 'm ago';
+    if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+    return Math.floor(diff/86400000) + 'd ago';
+  }
+
+  function _notifRender() {
+    var list = document.getElementById('notif-list');
+    if (!list) return;
+    var filtered = _notifTab === 'all' ? _notifData : _notifData.filter(function(n){ return n.type === _notifTab; });
+    if (filtered.length === 0) {
+      list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:13px"><div style="font-size:40px;margin-bottom:10px">🔔</div>No notifications here</div>';
+      return;
+    }
+    list.innerHTML = '';
+    filtered.forEach(function(n) {
+      var el = document.createElement('div');
+      el.className = 'notif-item' + (n.read ? '' : ' unread');
+      el.onclick = function() { n.read = true; _notifRender(); _notifUpdateBadge(); };
+      el.innerHTML =
+        '<div class="notif-icon-wrap" style="background:' + n.iconBg + '">' + n.icon + '</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-weight:' + (n.read?'500':'700') + ';font-size:13px;color:' + (n.read?'var(--text-muted)':'var(--text)') + ';margin-bottom:2px">' + n.title + '</div>' +
+          '<div style="font-size:11px;color:var(--text-muted);line-height:1.4;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + n.body + '</div>' +
+          '<div style="font-size:10px;color:rgba(255,255,255,0.3)">' + _notifTimeAgo(n.ts) + (n.read ? '' : ' · <span style="color:var(--orange)">New</span>') + '</div>' +
+        '</div>' +
+        (!n.read ? '<div style="width:8px;height:8px;border-radius:50%;background:var(--orange);flex-shrink:0;margin-top:4px"></div>' : '');
+      list.appendChild(el);
+    });
+  }
+
+  function toggleNotifPanel() {
+    _notifOpen = !_notifOpen;
+    var panel   = document.getElementById('notif-panel');
+    var overlay = document.getElementById('notif-overlay');
+    var btn     = document.getElementById('notif-btn');
+    if (_notifOpen) {
+      _notifRender();
+      panel.style.display   = 'block';
+      overlay.style.display = 'block';
+      if (btn) { btn.style.borderColor='rgba(247,147,26,0.5)'; btn.style.background='rgba(247,147,26,0.1)'; }
+    } else {
+      closeNotifPanel();
+    }
+  }
+
+  function closeNotifPanel() {
+    _notifOpen = false;
+    var panel   = document.getElementById('notif-panel');
+    var overlay = document.getElementById('notif-overlay');
+    var btn     = document.getElementById('notif-btn');
+    if (panel)   panel.style.display   = 'none';
+    if (overlay) overlay.style.display = 'none';
+    if (btn) { btn.style.borderColor=''; btn.style.background=''; }
+  }
+
+  function notifSetTab(tab, el) {
+    _notifTab = tab;
+    document.querySelectorAll('.notif-tab').forEach(function(b){
+      b.style.borderBottom = '2px solid transparent';
+      b.style.color = 'var(--text-muted)';
+      b.style.fontWeight = '400';
+    });
+    el.style.borderBottom = '2px solid var(--orange)';
+    el.style.color = 'var(--text)';
+    el.style.fontWeight = '700';
+    _notifRender();
+  }
+
+  function notifMarkAllRead() {
+    _notifData.forEach(function(n){ n.read = true; });
+    _notifRender();
+    _notifUpdateBadge();
+  }
+
+  function notifClearAll() {
+    _notifData = [];
+    _notifRender();
+    _notifUpdateBadge();
+  }
+
+  // Push a new notification (called from other modules)
+  function notifPush(type, icon, iconBg, title, body) {
+    var n = {
+      id: 'n' + Date.now(),
+      type: type,
+      icon: icon,
+      iconBg: iconBg || 'rgba(247,147,26,0.15)',
+      title: title,
+      body: body,
+      ts: Date.now(),
+      read: false
+    };
+    _notifData.unshift(n);
+    _notifUpdateBadge();
+    // Flash bell
+    var bell = document.getElementById('notif-bell-icon');
+    if (bell) {
+      bell.style.transform = 'rotate(-20deg)';
+      setTimeout(function(){ bell.style.transform='rotate(20deg)'; }, 100);
+      setTimeout(function(){ bell.style.transform='rotate(0deg)'; }, 200);
+    }
+    // If panel open, re-render
+    if (_notifOpen) _notifRender();
+  }
+  window.notifPush = notifPush;
+
+  // Simulate live notifications every 30-90s
+  var _notifTemplates = [
+    ['defi',   '⚡', 'rgba(247,147,26,0.15)', 'Staking Reward Distributed',   'Protocol distributed 12,480 OPN to stakers this epoch.'],
+    ['defi',   '🏦', 'rgba(0,229,255,0.12)',  'Vault APY Updated',             'BTC Revenue Vault APY adjusted to 25.1% based on fee revenue.'],
+    ['dao',    '🗳️', 'rgba(0,229,255,0.12)',  'DAO Vote Closing Soon',         'OIP-25 (Add USDC collateral) closes in 2 days. Cast your vote!'],
+    ['nft',    '🖼️', 'rgba(180,60,255,0.12)', 'NFT Sale: Phoenix Runes #0001', 'Phoenix Runes sold for 6,000 sat. Floor now 5,800 sat.'],
+    ['system', '🚀', 'rgba(0,255,136,0.12)',  'New IDO Announcement',          'BitDex Protocol IDO launching next week. Whitelist now open.'],
+    ['defi',   '💎', 'rgba(0,255,136,0.12)',  'OPN Price Alert',               'OPN up 8.4% in the last hour. Current price: $5.23.'],
+    ['system', '🎰', 'rgba(247,147,26,0.12)', 'Raffle: New Tickets Sold',      '1,042 new tickets sold. Jackpot now 12.8 BTC. Draw in 68 hours.'],
+    ['defi',   '⭐', 'rgba(247,147,26,0.15)', 'Airdrop Points Milestone',      '50,000 wallets now participating in Season 1. Earn more points!'],
+  ];
+  var _notifIdx = 0;
+  function _notifSimulateLive() {
+    var t = _notifTemplates[_notifIdx % _notifTemplates.length];
+    notifPush(t[0], t[1], t[2], t[3], t[4]);
+    _notifIdx++;
+    // Schedule next
+    setTimeout(_notifSimulateLive, 30000 + Math.random()*60000);
+  }
+  setTimeout(_notifSimulateLive, 20000); // first live notif after 20s
+
+  // Hook into existing toast/transaction system
+  var _origShowToast = window.showToast;
+  // After wallet connects, push a notif
+  var _notifWalletObs = setInterval(function(){
+    var addrEl = document.getElementById('wallet-address-display');
+    if (addrEl && addrEl.textContent && addrEl.textContent !== '--') {
+      notifPush('system','✅','rgba(0,255,136,0.15)','Wallet Connected!','Welcome back. Your positions and rewards are being loaded.');
+      clearInterval(_notifWalletObs);
+    }
+  }, 2000);
+
+  // Expose functions globally
+  window.toggleNotifPanel  = toggleNotifPanel;
+  window.closeNotifPanel   = closeNotifPanel;
+  window.notifSetTab       = notifSetTab;
+  window.notifMarkAllRead  = notifMarkAllRead;
+  window.notifClearAll     = notifClearAll;
+
+  // Init badge on load
+  _notifUpdateBadge();
   </script>
 
 </body>
