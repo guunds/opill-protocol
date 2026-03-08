@@ -6997,6 +6997,8 @@ function _faucetAddRecentRow(addr, amount, token) {
       if (WA.timer) clearInterval(WA.timer);
       // Auto-refresh every 10 seconds
       WA.timer = setInterval(function() { WA.fetchAll(); }, 10000);
+      // ── Dynamic OP-20 token detection ──
+      if (window.OP20Service) OP20Service.onConnect(address);
     },
 
     // ─────────────────────────────────────────
@@ -7007,6 +7009,8 @@ function _faucetAddRecentRow(addr, amount, token) {
       if (WA.timer) { clearInterval(WA.timer); WA.timer = null; }
       var section = document.getElementById('wallet-assets-section');
       if (section) section.style.display = 'none';
+      // ── Clear dynamic OP-20 cards ──
+      if (window.OP20Service) OP20Service.onDisconnect();
     },
 
     // ─────────────────────────────────────────
@@ -7431,7 +7435,11 @@ function _faucetAddRecentRow(addr, amount, token) {
   };
 
   // ── Expose global fetch trigger (used by Refresh button) ──
-  function waFetchAll() { WA.fetchAll(); }
+  function waFetchAll() {
+    WA.fetchAll();
+    // Also refresh dynamic OP-20 tokens
+    if (window.OP20Service) OP20Service.refresh();
+  }
   window.waFetchAll = waFetchAll;
   window.WA = WA;
 
@@ -8184,6 +8192,9 @@ function _faucetAddRecentRow(addr, amount, token) {
       </div>
     </div>
   </div>
+
+<!-- OP-20 Dynamic Token Service -->
+<script src="js/opnetTokens.js"></script>
 
 </body>
 </html>
