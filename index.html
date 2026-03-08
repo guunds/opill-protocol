@@ -3810,88 +3810,100 @@ function _wClearMsg() {
   if (el) el.style.display = 'none';
 }
 
-// ── FIXED: handleConnect is now properly async ──
+// ── handleConnect: Connect + Signature Confirmation ──
 async function handleConnect(type) {
   if (!window.Wallet) { _wShowMsg('Wallet module not loaded', 'error'); return; }
 
   var names = {opwallet:'OP_WALLET', unisat:'UniSat', xverse:'Xverse', okx:'OKX'};
   var name = names[type] || type;
-  _wShowMsg('⏳ Connecting to ' + name + '...', 'load');
 
-  // Disable all wallet options during connection
+  // Disable wallet options while connecting
   document.querySelectorAll('#wallet-modal-overlay [onclick^="handleConnect"]').forEach(function(el){
-    el.style.opacity = '0.6'; el.style.pointerEvents = 'none';
+    el.style.opacity='0.6'; el.style.pointerEvents='none';
   });
+  var _re = function(){
+    document.querySelectorAll('#wallet-modal-overlay [onclick^="handleConnect"]').forEach(function(el){
+      el.style.opacity='1'; el.style.pointerEvents='auto';
+    });
+  };
 
   try {
+    // STEP 1: Connect wallet (wallet extension popup appears here)
+    _wShowMsg('⏳ Step 1/2 — Connecting to ' + name + '...', 'load');
     var result = await Wallet.connect(type);
-
     if (!result || !result.address) throw new Error('No address returned');
 
-    // ── Update header UI ──
+    // STEP 2: Request signature to prove wallet ownership
+    _wShowMsg('✍️ Step 2/2 — Sign the verification message in ' + name + '...', 'load');
+    var ts = Date.now();
+    var sigMsg = 'OPiLL Protocol Authentication\n\nWallet: ' + result.address + '\nTime: ' + ts + '\n\nSign to verify ownership. No gas fee.';
+    var sig;
+    try {
+      sig = await Wallet.signMessage(sigMsg);
+      if (!sig) throw new Error('Empty signature');
+    } catch(sigErr) {
+      Wallet.disconnect();
+      var sm = sigErr.message || '';
+      _wShowMsg('❌ ' + (/reject|cancel|denied/i.test(sm) ? 'Signature rejected. Sign to verify wallet ownership.' : 'Signature required: ' + sm), 'error');
+      _re(); return;
+    }
+
+    // STEP 3: Update UI after successful connect + verify
     var addrEl = document.getElementById('wallet-address-display');
     var balEl  = document.getElementById('wallet-balance-display');
     var btnEl  = document.getElementById('connect-wallet-btn');
     var iconEl = document.getElementById('wallet-icon-el');
     var infoEl = document.getElementById('wallet-info-btn');
+    var ddAddr = document.getElementById('wallet-dropdown-addr');
+    var logoutAddr = document.getElementById('logout-confirm-addr');
 
-    if (addrEl) addrEl.textContent = result.address.slice(0,6) + '…' + result.address.slice(-4);
-    // Balance: fetch from wallet state (populated async by fetchBalance)
-    if (balEl) balEl.textContent = '…';
-    // Subscribe to balance event for real-time updates
-    if (window.Wallet && Wallet.on) {
+    var shortAddr = result.address.slice(0,7) + '...' + result.address.slice(-6);
+    if (addrEl)     addrEl.textContent     = shortAddr;
+    if (ddAddr)     ddAddr.textContent     = result.address;
+    if (logoutAddr) logoutAddr.textContent = result.address;
+    if (balEl)      balEl.textContent      = '...';
+    if (btnEl)      btnEl.style.display    = 'none';
+    if (infoEl)     infoEl.style.display   = 'flex';
+    if (iconEl) {
+      var icons = {
+        opwallet: '<svg width="18" height="18" viewBox="0 0 100 100" fill="none"><defs><linearGradient id="wi1" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#ff4400"/><stop offset="100%" stop-color="#f7931a"/></linearGradient></defs><circle cx="44" cy="58" r="30" fill="none" stroke="white" stroke-width="11" stroke-dasharray="145 48" stroke-dashoffset="-8" stroke-linecap="round"/><circle cx="76" cy="26" r="14" fill="none" stroke="url(#wi1)" stroke-width="9"/><path d="M65 37 Q59 48 60 58" fill="none" stroke="url(#wi1)" stroke-width="9" stroke-linecap="round"/></svg>',
+        unisat:   '<svg width="18" height="18" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" fill="#f7931a"/><path d="M18 15 L18 58 Q18 85 50 85 Q82 85 82 58 L82 15 L65 15 L65 58 Q65 68 50 68 Q35 68 35 58 L35 15 Z" fill="white"/></svg>',
+        xverse:   '<svg width="18" height="18" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" fill="#1a1033"/><line x1="16" y1="16" x2="84" y2="84" stroke="#EE7B30" stroke-width="15" stroke-linecap="round"/><line x1="84" y1="16" x2="16" y2="84" stroke="#EE7B30" stroke-width="15" stroke-linecap="round"/></svg>',
+        okx:      '<svg width="18" height="18" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" fill="#000"/><path d="M4 50C4 24.6 24.6 4 50 4C75.4 4 96 24.6 96 50C96 75.4 75.4 96 50 96C24.6 96 4 75.4 4 50Z" stroke="white" stroke-width="9" fill="none"/><circle cx="50" cy="50" r="18" fill="white"/></svg>'
+      };
+      iconEl.innerHTML = icons[type] || '&#9711;';
+    }
+
+    // Live balance updates
+    if (Wallet.on) {
       Wallet.on('balance', function(d) {
         var el = document.getElementById('wallet-balance-display');
         if (el) el.textContent = (d.btc || (d.sats/1e8)).toFixed(6) + ' BTC';
       });
     }
-    // Also poll after short delay in case balance already fetched
     setTimeout(function() {
-      if (window.Wallet && Wallet.state && Wallet.state.balance > 0) {
+      if (Wallet.state && Wallet.state.balance > 0) {
         var el = document.getElementById('wallet-balance-display');
         if (el) el.textContent = (Wallet.state.balance / 1e8).toFixed(6) + ' BTC';
       }
-    }, 2000);
-    if (btnEl)  { btnEl.style.display='none'; }
-    if (infoEl) { infoEl.style.display='flex'; }
-    if (iconEl) { iconEl.textContent = {opwallet:'⚡',unisat:'🦄',xverse:'🔮',okx:'⭕'}[type] || '🔗'; }
+      Wallet.fetchBalance().catch(function(){});
+    }, 1500);
 
     closeWalletModal();
-    showToast('✅ ' + name + ' connected!', 'success');
-
-    // Notify all sections
+    showToast('✅ ' + name + ' connected & verified!', 'success');
     _onWalletConnected(result);
 
   } catch (err) {
     var msg = err ? (err.message || String(err)) : 'Connection failed';
-    if (/not.?install|undefined/i.test(msg)) {
-      _wShowMsg('❌ ' + name + ' is not installed. Please install the extension.', 'error');
-    } else if (/reject|cancel|denied|user/i.test(msg)) {
-      _wShowMsg('❌ Connection rejected by user', 'error');
+    if (/not.?install|not detected/i.test(msg)) {
+      _wShowMsg('❌ ' + name + ' is not installed. Please install the wallet extension first.', 'error');
+    } else if (/reject|cancel|denied/i.test(msg)) {
+      _wShowMsg('❌ Connection rejected. Please approve in your wallet.', 'error');
     } else {
-      // Demo mode - simulate connection for testing
-      _wShowMsg('⚠️ Wallet not detected. Loading demo mode...', 'warn');
-      setTimeout(function() {
-        var demoAddr = 'tb1q' + Math.random().toString(36).slice(2,12) + Math.random().toString(36).slice(2,12);
-        var demoResult = { address: demoAddr, balance: Math.floor(Math.random()*500000+10000), type: type };
-        var addrEl = document.getElementById('wallet-address-display');
-        var balEl  = document.getElementById('wallet-balance-display');
-        var btnEl  = document.getElementById('connect-wallet-btn');
-        var infoEl = document.getElementById('wallet-info-btn');
-        if (addrEl) addrEl.textContent = demoAddr.slice(0,6)+'…'+demoAddr.slice(-4);
-        if (balEl)  balEl.textContent  = (demoResult.balance/1e8).toFixed(6)+' BTC';
-        if (btnEl)  btnEl.style.display='none';
-        if (infoEl) infoEl.style.display='flex';
-        closeWalletModal();
-        showToast('🎮 Demo mode: '+name+' simulated', 'success');
-        _onWalletConnected(demoResult);
-      }, 1200);
+      _wShowMsg('❌ ' + (msg || 'Connection failed. Make sure wallet extension is active.'), 'error');
     }
   }
-
-  document.querySelectorAll('#wallet-modal-overlay [onclick^="handleConnect"]').forEach(function(el){
-    el.style.opacity='1'; el.style.pointerEvents='auto';
-  });
+  _re();
 }
 
 function _onWalletConnected(result) {
@@ -5322,17 +5334,74 @@ function goto(id, navEl) {
 }
 
 // ── WALLET MODAL ──
-
-
-
-
-
-
-function disconnectWallet(){
-  if(window.Wallet) Wallet.disconnect();
-  _onDisconnected();
+function openWalletModal(){
+  var m=document.getElementById('wallet-modal-overlay');
+  if(m) m.style.display='flex';
+}
+function closeWalletModal(){
+  var m=document.getElementById('wallet-modal-overlay');
+  if(m) m.style.display='none';
 }
 
+// ── CORE DISCONNECT (called after confirm) ──
+function disconnectWallet(){
+  try { sessionStorage.removeItem('opill_wallet'); } catch(_){}
+  if(window.Wallet) Wallet.disconnect();
+  _onDisconnected();
+  var dd=document.getElementById('wallet-dropdown');
+  if(dd) dd.style.display='none';
+  var ov=document.getElementById('logout-confirm-overlay');
+  if(ov) ov.style.display='none';
+}
+
+// ── WALLET DROPDOWN ──
+function toggleWalletDropdown(){
+  var dd=document.getElementById('wallet-dropdown');
+  if(!dd) return;
+  if(dd.style.display==='block'){ closeWalletDropdown(); }
+  else { openWalletDropdown(); }
+}
+function openWalletDropdown(){
+  var dd=document.getElementById('wallet-dropdown');
+  if(dd) dd.style.display='block';
+  // Populate dropdown address
+  var addr=(window.Wallet&&Wallet.state&&Wallet.state.address)||'';
+  var ddAddr=document.getElementById('wallet-dropdown-addr');
+  if(ddAddr&&addr) ddAddr.textContent=addr;
+  setTimeout(function(){
+    document.addEventListener('click',function _odOut(e){
+      var btn=document.getElementById('wallet-info-btn');
+      var dd2=document.getElementById('wallet-dropdown');
+      if(btn&&btn.contains(e.target)) return;
+      if(dd2&&dd2.contains(e.target)) return;
+      closeWalletDropdown();
+      document.removeEventListener('click',_odOut);
+    });
+  },0);
+}
+function closeWalletDropdown(){
+  var dd=document.getElementById('wallet-dropdown');
+  if(dd) dd.style.display='none';
+}
+
+// ── LOGOUT CONFIRMATION ──
+function openLogoutConfirm(){
+  closeWalletDropdown();
+  var addr=(window.Wallet&&Wallet.state&&Wallet.state.address)||'--';
+  var el=document.getElementById('logout-confirm-addr');
+  if(el) el.textContent=addr;
+  var ov=document.getElementById('logout-confirm-overlay');
+  if(ov) ov.style.display='flex';
+}
+function closeLogoutConfirm(){
+  var ov=document.getElementById('logout-confirm-overlay');
+  if(ov) ov.style.display='none';
+}
+function confirmLogout(){
+  closeLogoutConfirm();
+  disconnectWallet();
+  showToast('👋 Disconnected successfully','info');
+}
 
 function _onDisconnected(){
   var cb=document.getElementById('connect-wallet-btn'),
@@ -5526,10 +5595,16 @@ function _init(){
 
 // ── GLOBAL EXPORTS ──
 window.goto=goto;
-
-
-
+window.openWalletModal=openWalletModal;
+window.closeWalletModal=closeWalletModal;
+window.handleConnect=handleConnect;
 window.disconnectWallet=disconnectWallet;
+window.toggleWalletDropdown=toggleWalletDropdown;
+window.openWalletDropdown=openWalletDropdown;
+window.closeWalletDropdown=closeWalletDropdown;
+window.openLogoutConfirm=openLogoutConfirm;
+window.closeLogoutConfirm=closeLogoutConfirm;
+window.confirmLogout=confirmLogout;
 window.selectTier=selectTier;
 window.tabSwitch=tabSwitch;
 window.updateRoute=updateRoute;
