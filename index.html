@@ -643,13 +643,23 @@
     <div class="topbar-right">
       <div id="connected-badge" class="connected-badge" style="display:none"><div class="dot"></div> Connected</div>
       <div class="notif-btn" id="notif-btn" onclick="toggleNotifPanel()" title="Notifications"><div id="notif-bell-icon">🔔</div><div class="notif-dot" id="notif-dot"></div></div>
-      <div id="wallet-info-btn" class="wallet-btn" style="display:none;cursor:pointer;gap:8px" onclick="disconnectWallet()">
+      <div id="wallet-info-btn" class="wallet-btn" style="display:none;cursor:pointer;gap:8px;position:relative" onclick="toggleWalletDropdown()">
         <div class="wallet-icon" id="wallet-icon-el" style="display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:6px">◎</div>
         <div style="display:flex;flex-direction:column;gap:1px;align-items:flex-start">
           <span id="wallet-address-display" style="font-size:11px;color:var(--text)">--</span>
           <span id="wallet-balance-display" style="font-size:10px;color:var(--green)">-- BTC</span>
         </div>
-        <span style="font-size:9px;color:var(--text-muted);margin-left:2px">✕</span>
+        <span style="font-size:9px;color:var(--text-muted);margin-left:2px">▾</span>
+        <!-- Wallet Dropdown -->
+        <div id="wallet-dropdown" style="display:none;position:absolute;top:calc(100% + 8px);right:0;min-width:180px;background:#0c1322;border:1px solid rgba(247,147,26,0.3);border-radius:12px;padding:8px;z-index:10001;box-shadow:0 8px 32px rgba(0,0,0,0.7)">
+          <div style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:6px">
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px">Connected Wallet</div>
+            <div id="wallet-dropdown-addr" style="font-size:11px;color:var(--text);font-family:'DM Mono',monospace">--</div>
+          </div>
+          <button onclick="event.stopPropagation();openLogoutConfirm()" style="width:100%;background:rgba(255,68,102,0.12);border:1px solid rgba(255,68,102,0.3);border-radius:8px;color:#ff4466;padding:8px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background 0.2s" onmouseover="this.style.background='rgba(255,68,102,0.22)'" onmouseout="this.style.background='rgba(255,68,102,0.12)'">
+            <span>🚪</span> Logout / Disconnect
+          </button>
+        </div>
       </div>
       <button id="connect-wallet-btn" class="connect-btn" onclick="openWalletModal()">
         ⚡ Connect Wallet
@@ -5949,6 +5959,20 @@ function _faucetAddRecentRow(addr, amount, token) {
   // Init badge on load
   _notifUpdateBadge();
   </script>
+
+  <!-- ══ LOGOUT CONFIRMATION MODAL ══ -->
+  <div id="logout-confirm-overlay" style="display:none;position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center" onclick="if(event.target===this)closeLogoutConfirm()">
+    <div style="background:#0c1322;border:1px solid rgba(255,68,102,0.35);border-radius:20px;padding:32px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.8)">
+      <div style="font-size:40px;margin-bottom:12px">🚪</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px">Disconnect Wallet</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px">You are about to disconnect your wallet from OPiLL Protocol.</div>
+      <div id="logout-confirm-addr" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(247,147,26,0.8);background:rgba(247,147,26,0.08);border:1px solid rgba(247,147,26,0.2);border-radius:8px;padding:8px 12px;margin-bottom:20px">--</div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button onclick="closeLogoutConfirm()" style="flex:1;padding:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:var(--text);font-size:13px;cursor:pointer;transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">Cancel</button>
+        <button onclick="confirmLogout()" style="flex:1;padding:12px;background:rgba(255,68,102,0.18);border:1px solid rgba(255,68,102,0.4);border-radius:10px;color:#ff4466;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s" onmouseover="this.style.background='rgba(255,68,102,0.3)'" onmouseout="this.style.background='rgba(255,68,102,0.18)'">🚪 Logout</button>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>

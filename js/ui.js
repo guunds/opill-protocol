@@ -91,9 +91,28 @@ async function handleConnect(type){
   var meta=Wallet.META[type]||{};
   _showLoad('Connecting to '+(meta.name||type)+'...');
   try{
+    // Step 1: Connect wallet (get address)
     var r=await Wallet.connect(type);
-    closeWalletModal(); _onConnected(r.address);
-    showToast('✅ '+(meta.name||type)+' connected!','success');
+
+    // Step 2: Request signature confirmation
+    _showLoad('📝 Please sign the confirmation message in your wallet...');
+    var sigMsg='OPiLL Protocol — Wallet Authentication\n\nAddress: '+r.address+'\nTimestamp: '+Date.now()+'\n\nBy signing this message, you confirm ownership of this wallet and agree to use OPiLL Protocol. This action does not cost any fees.';
+    try {
+      var sig = await Wallet.signMessage(sigMsg);
+      if(!sig) throw new Error('Signature was empty');
+    } catch(sigErr) {
+      // If user rejects signature, disconnect and show error
+      Wallet.disconnect();
+      var sigMsg2 = sigErr.message||'Signature rejected';
+      if(/reject|cancel|denied/i.test(sigMsg2)) _showErr('Signature rejected. Please sign to verify wallet ownership.');
+      else _showErr('Signature required to connect: '+sigMsg2);
+      return;
+    }
+
+    // Step 3: Connected + verified
+    closeWalletModal();
+    _onConnected(r.address);
+    showToast('✅ '+(meta.name||type)+' connected & verified!','success');
   }catch(err){
     var msg=err.message||'Connection failed';
     if(err.notInstalled) _showErr((meta.name||type)+' not installed',err.installUrl);
@@ -105,6 +124,51 @@ async function handleConnect(type){
 function disconnectWallet(){
   if(window.Wallet) Wallet.disconnect();
   _onDisconnected();
+  // Close dropdown if open
+  closeWalletDropdown();
+}
+
+// ── WALLET DROPDOWN ──
+function toggleWalletDropdown(){
+  var dd = document.getElementById('wallet-dropdown');
+  if(!dd) return;
+  var isOpen = dd.style.display === 'block';
+  if(isOpen){ closeWalletDropdown(); } else { openWalletDropdown(); }
+}
+function openWalletDropdown(){
+  var dd = document.getElementById('wallet-dropdown');
+  if(dd){ dd.style.display='block'; }
+  // Close on outside click
+  setTimeout(function(){
+    document.addEventListener('click', _closeDropdownOutside, {once:true});
+  }, 0);
+}
+function closeWalletDropdown(){
+  var dd = document.getElementById('wallet-dropdown');
+  if(dd){ dd.style.display='none'; }
+}
+function _closeDropdownOutside(e){
+  var btn = document.getElementById('wallet-info-btn');
+  var dd = document.getElementById('wallet-dropdown');
+  if(btn && btn.contains(e.target)) return;
+  if(dd && dd.contains(e.target)) return;
+  closeWalletDropdown();
+}
+
+// ── LOGOUT WITH CONFIRMATION ──
+function openLogoutConfirm(){
+  closeWalletDropdown();
+  var ov = document.getElementById('logout-confirm-overlay');
+  if(ov) ov.style.display='flex';
+}
+function closeLogoutConfirm(){
+  var ov = document.getElementById('logout-confirm-overlay');
+  if(ov) ov.style.display='none';
+}
+function confirmLogout(){
+  closeLogoutConfirm();
+  disconnectWallet();
+  showToast('👋 Logged out successfully','info');
 }
 
 function _onConnected(addr){
@@ -112,11 +176,15 @@ function _onConnected(addr){
       badge=document.getElementById('connected-badge'),
       info=document.getElementById('wallet-info-btn'),
       addrEl=document.getElementById('wallet-address-display'),
-      iconEl=document.getElementById('wallet-icon-el');
+      iconEl=document.getElementById('wallet-icon-el'),
+      ddAddr=document.getElementById('wallet-dropdown-addr'),
+      logoutAddr=document.getElementById('logout-confirm-addr');
   if(cb) cb.style.display='none';
   if(badge) badge.style.display='flex';
   if(info) info.style.display='flex';
   if(addrEl) addrEl.textContent=_short(addr);
+  if(ddAddr) ddAddr.textContent=addr||'--';
+  if(logoutAddr) logoutAddr.textContent=addr||'--';
   if(iconEl && window.Wallet){
     var icons={
       opwallet:'<svg width="18" height="18" viewBox="0 0 100 100" fill="none"><defs><linearGradient id="ti1" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#ff4400"/><stop offset="100%" stop-color="#f7931a"/></linearGradient></defs><circle cx="44" cy="58" r="30" fill="none" stroke="white" stroke-width="11" stroke-dasharray="145 48" stroke-dashoffset="-8" stroke-linecap="round"/><circle cx="76" cy="26" r="14" fill="none" stroke="url(#ti1)" stroke-width="9"/><path d="M65 37 Q59 48 60 58" fill="none" stroke="url(#ti1)" stroke-width="9" stroke-linecap="round"/></svg>',
@@ -283,6 +351,12 @@ window.openWalletModal=openWalletModal;
 window.closeWalletModal=closeWalletModal;
 window.handleConnect=handleConnect;
 window.disconnectWallet=disconnectWallet;
+window.toggleWalletDropdown=toggleWalletDropdown;
+window.openWalletDropdown=openWalletDropdown;
+window.closeWalletDropdown=closeWalletDropdown;
+window.openLogoutConfirm=openLogoutConfirm;
+window.closeLogoutConfirm=closeLogoutConfirm;
+window.confirmLogout=confirmLogout;
 window.selectTier=selectTier;
 window.tabSwitch=tabSwitch;
 window.updateRoute=updateRoute;
