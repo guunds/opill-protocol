@@ -959,7 +959,18 @@
       <div id="sec-history" class="section">
         <div class="page-header">
           <div class="page-title">📋 Transaction History</div>
-          <div class="page-desc">All your on-chain activity across OPiLL Protocol. Verifiable on Bitcoin Testnet4.</div>
+          <div class="page-desc">All your on-chain activity across OPiLL Protocol. Saved permanently to server — survives page refresh.</div>
+        </div>
+        <!-- DB sync status bar -->
+        <div id="hist-db-bar" style="display:none;background:rgba(0,229,255,0.07);border:1px solid rgba(0,229,255,0.2);border-radius:10px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+            <span id="hist-db-icon" style="font-size:16px">🔄</span>
+            <span id="hist-db-msg" style="color:var(--cyan)">Loading history from server...</span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onclick="histExportCSV()" style="background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:7px;color:var(--cyan);padding:5px 12px;font-size:11px;cursor:pointer">⬇ Export CSV</button>
+            <button onclick="histClearServer()" style="background:rgba(255,68,102,0.08);border:1px solid rgba(255,68,102,0.25);border-radius:7px;color:rgba(255,68,102,0.8);padding:5px 12px;font-size:11px;cursor:pointer">🗑 Clear History</button>
+          </div>
         </div>
         <div class="stats-row" style="margin-bottom:20px">
           <div class="stat-card"><div class="stat-label">Total Transactions</div><div class="stat-value" id="hist-total-tx">0</div><div class="stat-sub" id="hist-tx-sub">Connect wallet</div><div class="stat-icon">📊</div></div>
@@ -981,9 +992,9 @@
             <div></div><div>Transaction</div><div style="text-align:right">Amount</div><div style="text-align:right">Status</div><div style="text-align:right">Time</div>
           </div>
           <div id="hist-rows">
-            <div style="text-align:center;padding:48px 20px;color:var(--text-muted);font-size:13px">
+            <div id="hist-connect-prompt" style="text-align:center;padding:48px 20px;color:var(--text-muted);font-size:13px">
               <div style="font-size:40px;margin-bottom:12px">📋</div>
-              Connect wallet to see your transaction history
+              Connect wallet to load your transaction history from server
             </div>
           </div>
         </div>
@@ -3340,24 +3351,149 @@ function _secStatus(el, type, msg) {
 // ═══════════════════════════════════════════════════════════════
 var _txLog = [];
 var _userPoints = 0;
+var _dbWallet = null;   // currently connected wallet address
+var _dbSyncing = false; // prevent concurrent saves
 
+// ── DB helpers ─────────────────────────────────────────────────
+var _API = '/api/transactions';
+var _USER_API = '/api/user';
+
+async function _dbSaveTx(tx) {
+  if (!_dbWallet) return;
+  try {
+    await fetch(_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wallet_address: _dbWallet, ...tx })
+    });
+  } catch(e) { console.warn('[DB] Save tx failed:', e.message); }
+}
+
+async function _dbLoadTxs(walletAddr) {
+  try {
+    var r = await fetch(_API + '?wallet_address=' + encodeURIComponent(walletAddr));
+    if (!r.ok) return [];
+    var d = await r.json();
+    return Array.isArray(d.transactions) ? d.transactions : [];
+  } catch(e) { console.warn('[DB] Load txs failed:', e.message); return []; }
+}
+
+async function _dbSaveUser() {
+  if (!_dbWallet || _dbSyncing) return;
+  _dbSyncing = true;
+  try {
+    var doneTasks = typeof _apTasks !== 'undefined'
+      ? _apTasks.filter(function(t){return t.done;}).map(function(t){return t.id;})
+      : [];
+    var breakdown = typeof _apPointsBreakdown !== 'undefined' ? _apPointsBreakdown : {};
+    await fetch(_USER_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        wallet_address: _dbWallet,
+        points: _userPoints,
+        tasks_done: doneTasks,
+        breakdown: breakdown
+      })
+    });
+  } catch(e) { console.warn('[DB] Save user failed:', e.message); }
+  _dbSyncing = false;
+}
+
+async function _dbLoadUser(walletAddr) {
+  try {
+    var r = await fetch(_USER_API + '?wallet_address=' + encodeURIComponent(walletAddr));
+    if (!r.ok) return null;
+    return await r.json();
+  } catch(e) { console.warn('[DB] Load user failed:', e.message); return null; }
+}
+
+// ── Called once when wallet connects ──────────────────────────
+async function _dbOnWalletConnect(walletAddr) {
+  _dbWallet = walletAddr.toLowerCase();
+
+  // Show loading state in history
+  _histDbStatus('⏳', 'Connecting to server — loading your history...', 'var(--orange)');
+  var hRows = document.getElementById('hist-rows');
+  if (hRows) hRows.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:12px"><div style="font-size:32px;margin-bottom:10px">⏳</div>Loading your history from server...</div>';
+
+  // Load transactions + user profile in parallel
+  var results = await Promise.allSettled([
+    _dbLoadTxs(_dbWallet),
+    _dbLoadUser(_dbWallet)
+  ]);
+
+  var serverTxs  = results[0].status === 'fulfilled' ? results[0].value : [];
+  var serverUser = results[1].status === 'fulfilled' ? results[1].value : null;
+
+  // Merge server TXs into local _txLog (server is source of truth)
+  if (serverTxs.length > 0) {
+    // Merge: keep local unsaved ones + all server ones, deduplicate by id
+    var merged = serverTxs.slice();
+    _txLog.forEach(function(localTx) {
+      if (!merged.some(function(s){ return s.id === localTx.id; })) {
+        merged.unshift(localTx);
+      }
+    });
+    merged.sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+    _txLog = merged;
+    histRefresh();
+    _histDbStatus('✅', 'Loaded ' + serverTxs.length + ' transactions from server · Saved permanently', 'var(--green)');
+    showToast('📋 Loaded ' + serverTxs.length + ' transactions from server', 'info');
+  } else {
+    _histDbStatus('🟢', 'Connected to server · New transactions will be saved automatically', 'var(--green)');
+  }
+
+  // Restore user points + airdrop tasks
+  if (serverUser && serverUser.points > 0) {
+    _userPoints = serverUser.points;
+    // Restore completed tasks
+    if (serverUser.tasks_done && Array.isArray(serverUser.tasks_done) && typeof _apTasks !== 'undefined') {
+      serverUser.tasks_done.forEach(function(taskId) {
+        var task = _apTasks.find(function(t){ return t.id === taskId; });
+        if (task) task.done = true;
+      });
+    }
+    if (serverUser.breakdown && typeof _apPointsBreakdown !== 'undefined') {
+      Object.assign(_apPointsBreakdown, serverUser.breakdown);
+    }
+    if (typeof apRender === 'function') apRender();
+    lbUpdateMyRow();
+  }
+
+  // Update history stat cards
+  var totalEl = document.getElementById('hist-total-tx');
+  var subEl   = document.getElementById('hist-tx-sub');
+  if (totalEl) totalEl.textContent = _txLog.length;
+  if (subEl)   subEl.textContent   = walletAddr.slice(0,8) + '...';
+}
+
+// ── Add TX: save locally + persist to DB ──────────────────────
 function _addTx(type, label, amount, unit, status) {
   var tx = {
-    id: Math.random().toString(36).slice(2,10),
-    type: type,
-    label: label,
+    id:     'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    type:   type,
+    label:  label,
     amount: amount,
-    unit: unit,
+    unit:   unit,
     status: status || 'confirmed',
-    ts: Date.now(),
-    txid: Array.from({length:64},function(){return '0123456789abcdef'[Math.floor(Math.random()*16)];}).join('')
+    ts:     Date.now(),
+    txid:   Array.from({length:64},function(){return '0123456789abcdef'[Math.floor(Math.random()*16)];}).join('')
   };
   _txLog.unshift(tx);
-  _userPoints += Math.floor(amount * 10 + 50);
+  _userPoints += Math.floor(parseFloat(amount) * 10 + 50);
   histRefresh();
   lbUpdateMyRow();
+
+  // Persist to server (non-blocking)
+  _dbSaveTx(tx);
+  // Debounced user profile save
+  clearTimeout(_addTx._saveTimer);
+  _addTx._saveTimer = setTimeout(_dbSaveUser, 2000);
+
   return tx;
 }
+_addTx._saveTimer = null;
 
 function _mkStatus(el, type, msg) {
   if (!el) return;
@@ -3497,6 +3633,9 @@ function _onWalletConnected(result) {
   // Update all section stat cards with wallet info
   var addr = result.address;
   var balSat = result.balance || 0;
+
+  // ── Load persistent data from server ──
+  _dbOnWalletConnect(addr);
 
   // Leaderboard
   var lbRank = document.getElementById('lb-my-rank');
@@ -3648,6 +3787,45 @@ function histRefresh() {
     el.innerHTML = '<div style="font-size:20px;text-align:center">'+(icons[tx.type]||'📄')+'</div><div><div style="font-weight:600">'+tx.label+'</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px;font-family:monospace">'+tx.txid.slice(0,20)+'...</div></div><div style="text-align:right;color:var(--orange);font-weight:700">'+tx.amount+' '+tx.unit+'</div><div style="text-align:right"><span style="background:rgba(0,255,136,0.12);color:var(--green);padding:2px 8px;border-radius:4px;font-size:10px">'+tx.status+'</span></div><div style="text-align:right;color:var(--text-muted)">'+timeStr+'</div>';
     rows.appendChild(el);
   });
+}
+
+// ── DB Status bar helpers ──────────────────────────────────────
+function _histDbStatus(icon, msg, color) {
+  var bar = document.getElementById('hist-db-bar');
+  var ico = document.getElementById('hist-db-icon');
+  var txt = document.getElementById('hist-db-msg');
+  if (!bar) return;
+  bar.style.display = 'flex';
+  if (ico) ico.textContent = icon;
+  if (txt) { txt.textContent = msg; txt.style.color = color || 'var(--cyan)'; }
+}
+
+function histExportCSV() {
+  if (_txLog.length === 0) { showToast('No transactions to export','info'); return; }
+  var rows = ['Type,Label,Amount,Unit,Status,TxID,Date'];
+  _txLog.forEach(function(tx) {
+    var date = new Date(tx.ts).toISOString();
+    rows.push([tx.type, '"'+tx.label+'"', tx.amount, tx.unit, tx.status, tx.txid||'', date].join(','));
+  });
+  var blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url; a.download = 'opill-history-' + Date.now() + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('⬇ CSV exported (' + _txLog.length + ' transactions)', 'success');
+}
+
+async function histClearServer() {
+  if (!_dbWallet) { showToast('Connect wallet first','error'); return; }
+  if (!confirm('Clear ALL transaction history from server? This cannot be undone.')) return;
+  try {
+    await fetch('/api/transactions?wallet_address=' + encodeURIComponent(_dbWallet), { method:'DELETE' });
+    _txLog = [];
+    histRefresh();
+    _histDbStatus('🗑', 'History cleared from server', 'var(--red)');
+    showToast('🗑 Server history cleared', 'success');
+  } catch(e) { showToast('Failed to clear history', 'error'); }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -3926,6 +4104,9 @@ window.closeWalletModal   = closeWalletModal;
 window.handleConnect      = handleConnect;
 window.lbFilter           = lbFilter;
 window.histFilter         = histFilter;
+window.histExportCSV      = histExportCSV;
+window.histClearServer    = histClearServer;
+window._dbOnWalletConnect = _dbOnWalletConnect;
 window.stakeTab           = stakeTab;
 window.stakeSelectTier    = stakeSelectTier;
 window.stakeCalc          = stakeCalc;

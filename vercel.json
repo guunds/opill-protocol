@@ -1,10 +1,12 @@
 {
   "version": 2,
   "routes": [
-    { "src": "/api/faucet", "dest": "/api/faucet.js" },
-    { "src": "/api/token-price", "dest": "/api/price.js" },
+    { "src": "/api/faucet",       "dest": "/api/faucet.js" },
+    { "src": "/api/token-price",  "dest": "/api/price.js" },
+    { "src": "/api/transactions", "dest": "/api/transactions.js" },
+    { "src": "/api/user",         "dest": "/api/user.js" },
     { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "/(.*)",             "dest": "/index.html" }
   ],
   "headers": [
     {
