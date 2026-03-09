@@ -311,3 +311,58 @@ const Wallet = (() => {
 
 // Make globally available
 window.Wallet = Wallet;
+// ═════════════════════════════════════
+// OPiLL helper functions
+// ═════════════════════════════════════
+
+// Quick connect helper
+window.connectWallet = async function(type = "opwallet") {
+  try {
+
+    const result = await Wallet.connect(type);
+
+    console.log("Wallet connected:", result.address);
+
+    return result;
+
+  } catch (err) {
+
+    console.error("Wallet connect failed:", err);
+
+    if (err.notInstalled) {
+      window.open(err.installUrl, "_blank");
+    }
+
+    throw err;
+  }
+};
+
+
+// Get current wallet address
+window.getWalletAddress = function() {
+  return Wallet.state.address;
+};
+
+
+// Send BTC transaction
+window.sendBTC = async function(toAddress, amountSats) {
+
+  if (!Wallet.state.connected)
+    throw new Error("Wallet not connected");
+
+  const provider = Wallet.state.type === "opwallet"
+    ? window.opnet
+    : window.unisat;
+
+  if (!provider)
+    throw new Error("Provider not found");
+
+  const txid = await provider.sendBitcoin(
+    toAddress,
+    amountSats
+  );
+
+  console.log("Transaction sent:", txid);
+
+  return txid;
+};
